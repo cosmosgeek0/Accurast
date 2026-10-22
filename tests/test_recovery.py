@@ -21,6 +21,12 @@ from reconcile import reconcile
 merge_spec = importlib.util.spec_from_file_location("merge_local", BASE / "scripts/merge-local-delta.py")
 merge_module = importlib.util.module_from_spec(merge_spec)
 merge_spec.loader.exec_module(merge_module)
+prep_spec = importlib.util.spec_from_file_location("prepare_linux", BASE / "scripts/prepare-linux-root.py")
+prep_module = importlib.util.module_from_spec(prep_spec)
+prep_spec.loader.exec_module(prep_module)
+audit_spec = importlib.util.spec_from_file_location("audit_migration", BASE / "scripts/audit-migration.py")
+audit_module = importlib.util.module_from_spec(audit_spec)
+audit_spec.loader.exec_module(audit_module)
 
 
 def archive(path, files, extra=None):
@@ -138,6 +144,23 @@ class EndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve(); fixture = root / "fixture"
             subprocess.run(["node", str(BASE / "tests/make-fixture.mjs"), str(fixture)], check=True, capture_output=True)
+            metadata = fixture / "metadata"; metadata.mkdir()
+            uid, gid = os.getuid(), os.getgid()
+            username = "fixture-user" if uid else "root"
+            groupname = "fixture-group" if gid else "root"
+            accounts = "root:x:0:0:root:/root:/bin/sh\n"
+            if uid: accounts += f"{username}:x:{uid}:{gid}:fixture:/home/fixture:/bin/sh\n"
+            groups = "root:x:0:\n"
+            if gid: groups += f"{groupname}:x:{gid}:\n"
+            (metadata / "accounts.txt").write_text(accounts)
+            (metadata / "groups.txt").write_text(groups)
+            (metadata / "uname.txt").write_text("Linux test 6.8.0 x86_64 GNU/Linux\n")
+            (fixture / "etc/os-release").write_text('ID=ubuntu\nVERSION_ID="24.04"\n')
+            (metadata / "dpkg-packages.txt").write_text("python3\t3.12-test\tamd64\n")
+            (metadata / "systemd.json").write_text(json.dumps({"example.service": {
+                "User":username,"Group":groupname,"WorkingDirectory":"/var/lib/fixture",
+                "StateDirectory":"fixture","RuntimeDirectory":"fixture", "ExecStart":"{ path=/usr/bin/missing-runtime ; }"}}))
+            (fixture / "source.py").write_text("url='https://user:secret@old.example.invalid/private?token=abc'\nroot='/opt/wdi'\n")
             # A real SQLite DB validates read-only integrity checks.
             db = fixture / "state.sqlite"
             with sqlite3.connect(db) as conn:
@@ -148,10 +171,18 @@ class EndToEnd(unittest.TestCase):
             work = root / "work"; cache = work / "asset-cache"; cache.mkdir(parents=True)
             asset = cache / "snapshot.tar.gz"
             shutil.copyfile(plain, asset)
+            runtime = cache / "runtime.tar.gz"
+            archive(runtime, {"opt/runtime/bundle.tar.gz": b"synthetic-runtime"})
+            immutable = cache / "prepared-image.tar.xz"
+            immutable.write_bytes(b"synthetic-immutable-image")
             manifest = root / "release.json"
             manifest.write_text(json.dumps({"schema":2,"repository":"owner/Accurast","tag":"synthetic-test",
                 "artifacts":[{"name":asset.name,"sha256":sha(asset),"bytes":asset.stat().st_size,
-                              "kind":"snapshot","destination":"host"}]}))
+                              "kind":"snapshot","destination":"host"},
+                             {"name":runtime.name,"sha256":sha(runtime),"bytes":runtime.stat().st_size,
+                              "kind":"local-state","destination":"host-runtime"},
+                             {"name":immutable.name,"sha256":sha(immutable),"bytes":immutable.stat().st_size,
+                              "kind":"immutable","destination":"images/prepared-image.tar.xz"}]}))
             cmd = [sys.executable, str(BASE / "scripts/recover.py"), "restore", "--offline", "--manifest", str(manifest),
                    "--work", str(work)]
             first = subprocess.run(cmd, check=True, capture_output=True)
@@ -164,11 +195,39 @@ class EndToEnd(unittest.TestCase):
             self.assertTrue(json.loads(second.stdout)["artifacts"][0]["resumed"])
             target = root / "offline-root"
             subprocess.run([sys.executable, str(BASE / "scripts/stage-host.py"), "--snapshot", str(work / "restored/host"),
-                            "--target-root", str(target), "--config", str(BASE / "config/recovery.example.json")],
+                            "--target-root", str(target), "--config", str(BASE / "config/recovery.example.json"),
+                            "--supplement", str(work / "restored/host-runtime"), "--artifact-work", str(work),
+                            "--release-manifest", str(manifest)],
                            check=True, capture_output=True)
             fence = target / "etc/systemd/system/example.service.d/00-disaster-recovery-fence.conf"
             self.assertIn("ConditionPathExists=", fence.read_text())
             self.assertFalse((target / "var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED").exists())
+            self.assertEqual((target / "opt/runtime/bundle.tar.gz").read_bytes(), b"synthetic-runtime")
+            self.assertEqual((target / "var/lib/wdi-acurast-native/artifacts/prepared-image.tar.xz").read_bytes(), b"synthetic-immutable-image")
+            conflict_archive = root / "conflict.tar.gz"
+            archive(conflict_archive, {"etc/systemd/system/example.service": b"changed-service"})
+            verify_archive(conflict_archive, root / "conflict")
+            conflict = subprocess.run([sys.executable, str(BASE / "scripts/stage-host.py"), "--snapshot", str(work / "restored/host"),
+                            "--target-root", str(root / "rejected-target"), "--config", str(BASE / "config/recovery.example.json"),
+                            "--supplement", str(root / "conflict")], capture_output=True)
+            self.assertNotEqual(conflict.returncode, 0)
+            self.assertIn(b"Supplement changes an authoritative file", conflict.stderr)
+            config = json.loads((BASE / "config/recovery.example.json").read_text())
+            config.update(domain_overrides={"old.example.invalid":"replacement.example.invalid"})
+            prepared = prep_module.prepare(work / "restored/host", target, config)
+            self.assertEqual(prepared["services_started"], 0)
+            self.assertFalse(prepared["packages_installed"])
+            self.assertTrue((target / "run/fixture").is_dir())
+            self.assertIn(":!:", (target / "etc/shadow").read_text())
+            self.assertIn("exit 101", (target / "usr/sbin/policy-rc.d").read_text())
+            report = audit_module.audit(work / "restored/host", target, config)
+            self.assertTrue(any(row["path"] == "/usr/bin/missing-runtime" for row in report["missing_unit_references"]))
+            serialized = json.dumps(report)
+            self.assertNotIn("token=abc", serialized)
+            self.assertNotIn("user:secret", serialized)
+            self.assertIn("replacement.example.invalid", serialized)
+            bad_config = dict(config, target_architecture="aarch64")
+            with self.assertRaises(RecoveryError): prep_module.prepare(work / "restored/host", target, bad_config)
             (work / "restored/host/var/lib/wdi-acurast-manager/workers.json").write_text("tampered")
             failed = subprocess.run(cmd, capture_output=True)
             self.assertNotEqual(failed.returncode, 0)

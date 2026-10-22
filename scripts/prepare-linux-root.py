@@ -99,8 +99,8 @@ def prepare(snapshot, target, config, ownership=False, native=False):
     uid_map = {int(row[2]): row for row in source_users.values()}
     gid_map = {int(row[2]): row for row in source_groups.values()}
     manifest = json.loads((snapshot / "manifest.json").read_text())
-    uid_need = {0}
-    gid_need = {0}
+    uid_need = {0, *staged.get("required_uids", [])}
+    gid_need = {0, *staged.get("required_gids", [])}
     for record in list(manifest["files"].values()) + list(manifest.get("directories", {}).values()):
         uid_need.add(int(record.get("source_uid", 0))); gid_need.add(int(record.get("source_gid", 0)))
     for props in units.values():
@@ -162,16 +162,19 @@ def prepare(snapshot, target, config, ownership=False, native=False):
             dest.mkdir(parents=True, mode=0o750)
         require(dest.is_dir(), "Required service directory is not a directory")
         if ownership: os.chown(dest, uid, gid)
+    policy = safe_target(target, "/usr/sbin/policy-rc.d")
+    policy_text = "#!/bin/sh\n# Offline disaster-recovery root: do not start services.\nexit 101\n"
+    require(not policy.exists() or policy.read_text() == policy_text,
+            "Existing offline policy-rc.d requires review; refusing to replace it")
     write_table(etc / "passwd", users, 0o644)
     write_table(etc / "group", groups, 0o644)
     write_table(etc / "shadow", shadow, 0o600)
     control = private_dir(target / "var/lib/accurast-recovery")
     # Defend future package installation via standard init helpers. Package
     # installation itself is deliberately outside this offline preparation step.
-    policy = safe_target(target, "/usr/sbin/policy-rc.d")
     policy.parent.mkdir(parents=True, exist_ok=True)
     if not policy.exists():
-        policy.write_text("#!/bin/sh\n# Offline disaster-recovery root: do not start services.\nexit 101\n")
+        policy.write_text(policy_text)
         policy.chmod(0o755)
     package_rows = []
     for line in (snapshot / "metadata/dpkg-packages.txt").read_text().splitlines():

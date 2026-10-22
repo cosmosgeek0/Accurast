@@ -10,7 +10,7 @@ import shutil
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from recover import RecoveryError, private_dir, relative, require, sha, verify_tree, verify_host, write_json
+from recover import BASE, RecoveryError, private_dir, read_manifest, relative, require, sha, verify_tree, verify_host, write_json
 
 
 def main():
@@ -19,6 +19,9 @@ def main():
     p.add_argument("--snapshot", required=True, help="Verified restored host directory")
     p.add_argument("--target-root", required=True, help="Empty offline directory or mounted replacement root; never /")
     p.add_argument("--config", required=True)
+    p.add_argument("--supplement", action="append", default=[], help="Verified additional host runtime tree; only exact-identical overlaps accepted")
+    p.add_argument("--artifact-work", help="Restore work directory containing verified immutable image assets")
+    p.add_argument("--release-manifest", default=str(BASE / "release-assets.json"))
     p.add_argument("--preserve-ownership", action="store_true", help="Requires root; restore captured uid/gid numerically")
     args = p.parse_args()
     source = Path(args.snapshot).resolve()
@@ -31,6 +34,27 @@ def main():
     require((source / ".isolation.json").is_file(), "Use recover restore before staging")
     verify_tree(source, manifest)
     verify_host(source, manifest)
+    source_hash = sha(source / "manifest.json")
+    file_sources = {name: source for name in manifest["files"]}
+    supplements = []
+    for value in args.supplement:
+        extra = Path(value).resolve()
+        require((extra / ".isolation.json").is_file(), "Restore supplement before staging")
+        extra_manifest = json.loads((extra / "manifest.json").read_text())
+        verify_tree(extra, extra_manifest)
+        for name, rec in extra_manifest["files"].items():
+            if name in manifest["files"]:
+                require(rec["sha256"] == manifest["files"][name]["sha256"], "Supplement changes an authoritative file; explicit reconciliation required")
+            else:
+                manifest["files"][name] = rec
+                file_sources[name] = extra
+        for category in ("directories", "symlinks"):
+            current = manifest.setdefault(category, {})
+            for name, rec in extra_manifest.get(category, {}).items():
+                if category == "symlinks" and name in current:
+                    require(current[name]["target"] == rec["target"], "Supplement changes symlink target")
+                current.setdefault(name, rec)
+        supplements.append({"manifest_sha256": sha(extra / "manifest.json"), "files": len(extra_manifest["files"])})
     config = json.loads(Path(args.config).read_text())
     require(config.get("controller_mode") == "disabled-until-reconciled", "Controller mode must remain disabled")
     require(not args.preserve_ownership or os.geteuid() == 0, "Root required to restore ownership")
@@ -54,7 +78,7 @@ def main():
         mapped_names.add(str(dest_rel))
         dest = target.joinpath(*dest_rel.parts)
         private_dir(dest.parent)
-        shutil.copyfile(source / name, dest)
+        shutil.copyfile(file_sources[name] / name, dest)
         mode = rec.get("source_mode", 0o600)
         if isinstance(mode, str): mode = int(mode, 8)
         dest.chmod(mode & 0o777)  # never restore setuid/setgid
@@ -88,10 +112,33 @@ def main():
         private_dir(link.parent)
         os.symlink(os.path.relpath(resolved, link.parent), link)
         links_restored += 1
+    images = []
+    if args.artifact_work:
+        release = read_manifest(args.release_manifest)
+        artifact_work = Path(args.artifact_work).resolve()
+        image_dir = config["image_directory"]
+        require(image_dir.startswith("/"), "Image directory must be absolute")
+        image_target = target.joinpath(*relative(image_dir.lstrip("/")).parts)
+        private_dir(image_target)
+        for artifact in release["artifacts"]:
+            if artifact["kind"] != "immutable": continue
+            restored = artifact_work / "restored" / artifact["destination"]
+            proof = json.loads((artifact_work / ("proof-" + artifact["name"] + ".json")).read_text())
+            require(proof["sha256"] == artifact["sha256"] and restored.is_file() and
+                    not restored.is_symlink() and sha(restored) == artifact["sha256"], "Immutable image restore proof mismatch")
+            dest = image_target / Path(artifact["destination"]).name
+            if dest.exists():
+                require(dest.is_file() and not dest.is_symlink() and sha(dest) == artifact["sha256"], "Image destination conflicts with captured content")
+            else:
+                shutil.copyfile(restored, dest); dest.chmod(0o600)
+            images.append({"name": dest.name, "sha256": artifact["sha256"], "path": str(dest.relative_to(target))})
     control = private_dir(target / "var/lib/accurast-recovery")
     write_json(control / "migration-config.json", config)
     write_json(control / "staging-report.json", {"files_copied": count, "units_fenced": sorted(units),
-        "source_manifest_sha256": sha(source / "manifest.json"), "source_platform": manifest.get("platform"),
+        "source_manifest_sha256": source_hash, "source_platform": manifest.get("platform"),
+        "supplement_manifests": supplements, "immutable_images": images,
+        "required_uids": sorted({rec.get("source_uid", 0) for rec in manifest["files"].values()}),
+        "required_gids": sorted({rec.get("source_gid", 0) for rec in manifest["files"].values()}),
         "staging_platform": platform.system(), "ownership_restored": args.preserve_ownership,
         "symlinks_restored": links_restored, "unresolved_symlinks": unresolved,
         "enablement_links_intentionally_omitted": enabled_links_skipped,

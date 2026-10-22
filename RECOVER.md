@@ -45,10 +45,30 @@ Copy `config/recovery.example.json` to secure storage and set replacement source
 python3 scripts/stage-host.py \
   --snapshot /secure/Accurast-restored/restored/host \
   --target-root /secure/replacement-root \
-  --config /secure/recovery-config.json
+  --config /secure/recovery-config.json \
+  --supplement /secure/Accurast-restored/restored/host-runtime \
+  --artifact-work /secure/Accurast-restored
 ```
 
 On Linux, root may add `--preserve-ownership` to apply captured numeric owners. The target must be empty and independent of `/` and the snapshot. Staging copies verified files with captured modes, restores recorded directory metadata and safe links, and adds a missing-marker condition to captured systemd services/timers/sockets. It does not enable or start units. Inspect `/secure/replacement-root/var/lib/accurast-recovery/staging-report.json` for missing metadata, unresolved links, paths and domains before installing this filesystem on a replacement host.
+
+Use `--supplement` only when that runtime artifact is listed in the release manifest; omit it otherwise. Supplements may add files or repeat identical hashes, and cannot silently overwrite changed authoritative files. `--artifact-work` copies pinned, already verified immutable assets into the configured image directory and records their hashes. The default directory matches the original Grass artifact location; a changed location requires the corresponding source/configuration references to be reviewed.
+
+Prepare the captured service account IDs, locked password entries and required home/state/runtime directories without executing any service or package installation script:
+
+```sh
+python3 scripts/prepare-linux-root.py \
+  --snapshot /secure/Accurast-restored/restored/host \
+  --target-root /secure/replacement-root --config /secure/recovery-config.json
+python3 scripts/audit-migration.py \
+  --snapshot /secure/Accurast-restored/restored/host \
+  --target-root /secure/replacement-root --config /secure/recovery-config.json \
+  --out /secure/migration-audit.json
+```
+
+On a replacement Linux machine, add `--require-native-platform` to reject a distribution/version/CPU mismatch before native provisioning, and `--apply-ownership` as root to apply numeric ownership. The default architecture matches the captured control host; it does not assume that the host CPU matches the Android phones. Account ID/name conflicts stop preparation. Package versions are recorded in `packages.lock.json`; packages are not installed by this helper. A `policy-rc.d` guard also blocks conventional package-triggered service starts inside the offline root.
+
+The private migration audit lists missing executables/working directories, captured bind mounts, configured path changes, image placement and hostname references without copying URL credentials or query strings into its report. Resolve those items before activation. The staged directory is an application filesystem overlay, not a bootable Linux image; a compatible installed OS and its package dependencies remain necessary.
 
 Recreate users/groups, bind mounts, runtime dependencies and image serving from the captured metadata. Restore Cloudflare tunnel credentials to the reviewed destination and update owner-controlled DNS/tunnel routing only after the replacement service is ready. Do not run the old and replacement control authority concurrently. Do not open inbound ports as a shortcut; the old host used SSM and tunnels.
 

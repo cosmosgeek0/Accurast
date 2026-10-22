@@ -4,7 +4,7 @@
   "target_architecture": "match-captured-host",
   "source_path_mapping": {},
   "domain_overrides": {},
-  "image_directory": "/srv/accurast/images",
+  "image_directory": "/var/lib/wdi-acurast-native/artifacts",
   "controller_mode": "disabled-until-reconciled",
   "notes": "Copy this file outside git. Domain and path mappings are a migration plan, never a blind replacement inside keys or state."
 }
