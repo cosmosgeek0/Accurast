@@ -110,6 +110,16 @@ def read_manifest(path):
         require(artifact["kind"] in ("snapshot", "local-state", "immutable"), "Unknown artifact kind")
         require(HASH.fullmatch(artifact["sha256"]), "Invalid asset hash")
         require(isinstance(artifact["bytes"], int) and artifact["bytes"] > 0, "Invalid asset length")
+        if "parts" in artifact:
+            parts = artifact["parts"]
+            require(isinstance(parts, list) and 0 < len(parts) <= 256, "Invalid multipart asset count")
+            for part in parts:
+                require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]+", part["name"]), "Invalid part asset name")
+                require(part["name"] not in names, "Duplicate or colliding multipart asset name")
+                names.add(part["name"])
+                require(HASH.fullmatch(part["sha256"]), "Invalid part asset hash")
+                require(isinstance(part["bytes"], int) and 0 < part["bytes"] <= 1024 ** 3, "Part length must be between 1 byte and 1 GiB")
+            require(sum(part["bytes"] for part in parts) == artifact["bytes"], "Multipart lengths do not equal full artifact length")
         relative(artifact["destination"])
         require(not any(artifact["destination"] == old or artifact["destination"].startswith(old + "/") or old.startswith(artifact["destination"] + "/") for old in destinations), "Overlapping artifact destination")
         destinations.add(artifact["destination"])
@@ -126,6 +136,13 @@ def preflight(manifest, online=True):
         require(repo.get("private") is True and repo.get("full_name", "").lower() == manifest["repository"].lower(), "Repository is not the expected PRIVATE repository")
     return {"ok": True, "checked_utc": utc(), "repository_private_checked": online,
             "python": sys.version.split()[0], "mode": "isolated-no-launch-no-signing"}
+
+
+def _case_sensitive_directory(path):
+    with tempfile.TemporaryDirectory(dir=path, prefix=".case-probe-") as temporary:
+        probe = Path(temporary)
+        (probe / "CaseProbe").write_bytes(b"")
+        return not (probe / "caseprobe").exists()
 
 
 def verify_archive(archive, extract_to=None):
@@ -162,6 +179,15 @@ def verify_archive(archive, extract_to=None):
         if extract_to is not None:
             dest = private_dir(extract_to)
             require(not any(dest.iterdir()), "Extraction target must be empty")
+            folded, collision = set(), False
+            for name in expected:
+                value = name.casefold()
+                if value in folded:
+                    collision = True; break
+                folded.add(value)
+            del folded
+            if collision:
+                require(_case_sensitive_directory(dest), "Archive contains case-distinct paths; use a case-sensitive Linux or APFS filesystem")
             for member in members:
                 target = dest.joinpath(*PurePosixPath(member.name).parts)
                 if member.isdir():
@@ -256,7 +282,8 @@ def verify_host(root, manifest):
             "required_files_verified": len(REQUIRED)}
 
 
-def download_asset(manifest, artifact, cache, offline):
+def _download_single(manifest, artifact, cache, offline):
+    require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]+", artifact["name"]), "Unsafe downloaded asset name")
     path = cache / artifact["name"]
     if path.exists():
         require(not path.is_symlink(), "Symlink in asset cache")
@@ -273,6 +300,40 @@ def download_asset(manifest, artifact, cache, offline):
         downloaded.chmod(0o600)
         os.replace(downloaded, path)
     return path
+
+
+def download_asset(manifest, artifact, cache, offline):
+    if "parts" not in artifact:
+        return _download_single(manifest, artifact, cache, offline)
+    require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]+", artifact["name"]), "Unsafe assembled archive name")
+    destination = cache / artifact["name"]
+    if destination.exists():
+        require(not destination.is_symlink(), "Symlink in assembled asset cache")
+        require(destination.stat().st_size == artifact["bytes"] and sha(destination) == artifact["sha256"],
+                "Existing assembled asset failed verification; move it aside before resuming")
+        return destination
+    parts = [_download_single(manifest, part, cache, offline) for part in artifact["parts"]]
+    # Part caches remain available after interruption. Only a fully verified
+    # concatenation is adopted as the logical archive; no old cache is erased.
+    with tempfile.TemporaryDirectory(dir=cache, prefix="assemble-") as temp:
+        assembled = Path(temp) / "archive"
+        digest, length = hashlib.sha256(), 0
+        with assembled.open("xb") as output:
+            for part, record in zip(parts, artifact["parts"]):
+                part_digest, part_length = hashlib.sha256(), 0
+                with part.open("rb") as source:
+                    for chunk in iter(lambda: source.read(4 * 1024 * 1024), b""):
+                        output.write(chunk); digest.update(chunk); part_digest.update(chunk)
+                        length += len(chunk); part_length += len(chunk)
+                require(part_length == record["bytes"] and part_digest.hexdigest() == record["sha256"],
+                        "Part changed during assembly; full archive was not adopted")
+            output.flush(); os.fsync(output.fileno())
+        require(length == artifact["bytes"] and digest.hexdigest() == artifact["sha256"],
+                "Assembled archive full hash or length mismatch")
+        assembled.chmod(0o600)
+        require(not destination.exists(), "Full archive destination appeared during assembly")
+        os.replace(assembled, destination)
+    return destination
 
 
 def restore(args, manifest):

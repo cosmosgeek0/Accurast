@@ -68,6 +68,13 @@ class ArchiveSafety(unittest.TestCase):
             opened.return_value.__enter__.return_value = tar
             with self.assertRaises(RecoveryError): verify_archive("synthetic-header-only.tar")
         tar.extractfile.assert_not_called()
+    def test_case_distinct_paths_require_case_sensitive_destination(self):
+        tar = self.root / "case-distinct.tar.gz"
+        archive(tar, {"docs/Index.html":b"upper", "docs/index.html":b"lower"})
+        dest = self.root / "out"
+        with patch("recover._case_sensitive_directory", return_value=False):
+            with self.assertRaises(RecoveryError): verify_archive(tar, dest)
+        self.assertFalse(any(dest.iterdir()))
 
     def test_reject_symlink(self):
         def link(t):

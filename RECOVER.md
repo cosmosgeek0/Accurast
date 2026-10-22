@@ -10,7 +10,11 @@ No separate backup key or password-manager login is needed. Private GitHub relea
 
 No old AWS URL or old Mac path is needed to retrieve the pinned artifacts. Use a canonical absolute work path without symlinked parent directories. Allow disk space for the downloaded archives and expanded trees; the local preservation archive is several GB uncompressed.
 
+The full Linux host snapshot contains distinct `Index.html` and `index.html` files, so its restore destination must use a case-sensitive filesystem: ordinary Linux filesystems or a case-sensitive APFS volume/image on macOS. A normal case-insensitive Mac volume cannot represent both files. Recovery checks for this before copying case-colliding members; it does not format or change any production disk.
+
 Archive inventories are bounded to 256 MiB of JSON to accommodate the captured host's large file/dependency inventory. The verifier holds archive member metadata and this inventory in memory while streaming file contents in archive order; it never loads whole payload archives into memory. Use a machine with enough available RAM for those metadata structures and enough disk space for both preserved trees and any staged copies. Path restrictions, exact manifest coverage and every member's SHA256 remain mandatory.
+
+Large release archives may use an ordered `parts` array in the schema-2 manifest. The logical artifact retains its full `name`, `sha256`, `bytes`, `kind` and `destination`; each part records its own `name`, `sha256` and `bytes` and is at most 1 GiB. Recovery verifies and caches each private GitHub part, streams them in the recorded order into a temporary archive, and adopts it only after its full size and SHA256 match. Resuming reuses verified parts or an already verified complete archive. Corrupt existing cache files fail without deletion. Allow additional disk space for both cached parts and the assembled compressed archive, as well as its expanded tree.
 
 ```sh
 gh repo clone cosmosgeek0/Accurast
