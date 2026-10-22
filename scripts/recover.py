@@ -183,6 +183,44 @@ def verify_tree(root, manifest):
     return len(manifest["files"])
 
 
+def snapshot_file(root, name, manifest=None):
+    """Resolve captured symlink metadata without creating or following host links."""
+    root = Path(root).absolute()
+    relative(name)
+    manifest = manifest or json.loads((root / "manifest.json").read_text())
+    links = manifest.get("symlinks", {})
+    pending, resolved, hops = list(PurePosixPath(name).parts), [], 0
+    while pending:
+        part = pending.pop(0)
+        if part in ("", "."):
+            continue
+        if part == "..":
+            require(resolved, "Captured symlink escapes snapshot root")
+            resolved.pop()
+            continue
+        current = "/".join(resolved + [part])
+        if current in links:
+            hops += 1
+            require(hops <= 40, "Captured symlink loop or excessive depth")
+            target = links[current]["target"]
+            require(isinstance(target, str) and target and "\\" not in target and "\x00" not in target,
+                    "Invalid captured symlink target")
+            if target.startswith("/"):
+                resolved = []
+            pending = target.split("/") + pending
+        else:
+            resolved.append(part)
+    final_name = "/".join(resolved)
+    require(final_name in manifest["files"], "Captured link target was not preserved")
+    path = root.joinpath(*resolved)
+    require(path.is_file() and not path.is_symlink(), "Captured target is missing or a physical symlink")
+    require(all(not p.is_symlink() for p in path.parents if p == root or root in p.parents),
+            "Captured target parent is a physical symlink")
+    record = manifest["files"][final_name]
+    require(path.stat().st_size == record["bytes"] and sha(path) == record["sha256"], "Captured target digest mismatch")
+    return path
+
+
 def verify_sqlite(root, manifest):
     checked = 0
     for name in manifest["files"]:
@@ -206,8 +244,11 @@ def verify_host(root, manifest):
     raw = command(["node", str(BASE / "scripts/verify-vault.mjs"), str(root)], "Vault/profile consistency verification")
     vault = json.loads(raw)
     require(vault.get("ok") is True, "Vault validation did not succeed")
+    pawns_raw = command(["node", str(BASE / "scripts/verify-pawns.mjs"), str(root)], "Pawns native session/key consistency verification")
+    pawns = json.loads(pawns_raw)
+    require(pawns.get("ok") is True, "Pawns native session validation did not succeed")
     sqlite_count = verify_sqlite(root, manifest)
-    return {"vault": vault, "sqlite_databases_verified": sqlite_count,
+    return {"vault": vault, "pawns": pawns, "sqlite_databases_verified": sqlite_count,
             "required_files_verified": len(REQUIRED)}
 
 

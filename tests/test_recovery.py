@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE / "scripts"))
-from recover import RecoveryError, download_asset, preflight, read_manifest, sha, verify_archive, verify_tree
+from recover import RecoveryError, download_asset, preflight, read_manifest, sha, snapshot_file, verify_archive, verify_tree
 from reconcile import reconcile
 merge_spec = importlib.util.spec_from_file_location("merge_local", BASE / "scripts/merge-local-delta.py")
 merge_module = importlib.util.module_from_spec(merge_spec)
@@ -56,6 +56,7 @@ class ArchiveSafety(unittest.TestCase):
         self.assertEqual(verify_tree(dest, manifest), 2)
         (dest / "nested/state").write_bytes(b"modified-state")
         with self.assertRaises(RecoveryError): verify_tree(dest, manifest)
+
     def test_reject_symlink(self):
         def link(t):
             m = tarfile.TarInfo("link"); m.type = tarfile.SYMTYPE; m.linkname = "/tmp/target"; t.addfile(m)
@@ -76,6 +77,34 @@ class ArchiveSafety(unittest.TestCase):
         (dest / "nested").rename(self.root / "elsewhere")
         (dest / "nested").symlink_to(self.root / "elsewhere")
         with self.assertRaises(RecoveryError): verify_tree(dest, manifest)
+
+
+class CapturedSymlinkSafety(unittest.TestCase):
+    def test_os_release_symlink_metadata_and_platform_check(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            m = archive(root / "source.tar.gz", {
+                "usr/lib/os-release": b'ID=ubuntu\nVERSION_ID="24.04"\n',
+                "metadata/uname.txt": b"Linux fixture x86_64 GNU/Linux\n"})
+            snapshot = root / "snapshot"
+            verify_archive(root / "source.tar.gz", snapshot)
+            m["symlinks"] = {"etc/os-release": {"target": "../usr/lib/os-release"},
+                             "lib": {"target": "usr/lib"}, "release": {"target": "/etc/os-release"}}
+            (snapshot / "manifest.json").write_text(json.dumps(m))
+            self.assertFalse((snapshot / "etc/os-release").exists())
+            self.assertEqual(snapshot_file(snapshot, "etc/os-release"), snapshot / "usr/lib/os-release")
+            self.assertEqual(snapshot_file(snapshot, "lib/os-release"), snapshot / "usr/lib/os-release")
+            self.assertEqual(snapshot_file(snapshot, "release"), snapshot / "usr/lib/os-release")
+            result = prep_module.validate_platform(snapshot, {"target_platform":"linux", "target_architecture":"match-captured-host"})
+            self.assertEqual(result["captured_os"], {"ID":"ubuntu", "VERSION_ID":"24.04"})
+    def test_captured_link_escape_loop_and_missing_target_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            m = archive(root / "source.tar.gz", {"safe": b"data"})
+            snapshot = root / "snapshot"; verify_archive(root / "source.tar.gz", snapshot)
+            for links in ({"a":{"target":"../outside"}}, {"a":{"target":"b"},"b":{"target":"a"}}, {"a":{"target":"missing"}}):
+                m["symlinks"] = links
+                with self.assertRaises(RecoveryError): snapshot_file(snapshot, "a", m)
 
 
 def evidence():
@@ -189,6 +218,7 @@ class EndToEnd(unittest.TestCase):
             report = json.loads(first.stdout)
             self.assertEqual(report["artifacts"][0]["vault"]["profiles_verified"], 1)
             self.assertEqual(report["artifacts"][0]["sqlite_databases_verified"], 1)
+            self.assertEqual(report["artifacts"][0]["pawns"]["saved_sessions_decrypted"], 1)
             self.assertFalse(report["separate_recovery_key_required"])
             self.assertFalse(report["outer_backup_encryption"])
             second = subprocess.run(cmd, check=True, capture_output=True)
@@ -228,6 +258,12 @@ class EndToEnd(unittest.TestCase):
             self.assertIn("replacement.example.invalid", serialized)
             bad_config = dict(config, target_architecture="aarch64")
             with self.assertRaises(RecoveryError): prep_module.prepare(work / "restored/host", target, bad_config)
+            session_file = work / "restored/host/var/lib/wdi/companion-apps/pawns-core-20261008/1-session.sealed.json"
+            bad_session = json.loads(session_file.read_text()); bad_session["device_id"] = "wrong-device"
+            session_file.write_text(json.dumps(bad_session))
+            native_check = subprocess.run(["node", str(BASE / "scripts/verify-pawns.mjs"), str(work / "restored/host")], capture_output=True)
+            self.assertNotEqual(native_check.returncode, 0)
+            self.assertIn(b"PAWNS_SESSION_IDENTITY_ACCOUNT_MISMATCH", native_check.stderr)
             (work / "restored/host/var/lib/wdi-acurast-manager/workers.json").write_text("tampered")
             failed = subprocess.run(cmd, capture_output=True)
             self.assertNotEqual(failed.returncode, 0)

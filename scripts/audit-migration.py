@@ -9,7 +9,7 @@ import sys
 from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).parent))
-from recover import RecoveryError, require, relative, sha, write_json
+from recover import RecoveryError, require, relative, sha, snapshot_file, write_json
 
 
 def audit(snapshot, target, config):
@@ -18,7 +18,7 @@ def audit(snapshot, target, config):
     manifest = json.loads((snapshot / "manifest.json").read_text())
     staged = json.loads((target / "var/lib/accurast-recovery/staging-report.json").read_text())
     require(staged["source_manifest_sha256"] == sha(snapshot / "manifest.json"), "Staging manifest mismatch")
-    units = json.loads((snapshot / "metadata/systemd.json").read_text())
+    units = json.loads(snapshot_file(snapshot, "metadata/systemd.json", manifest).read_text())
     mappings, overrides = config.get("source_path_mapping", {}), config.get("domain_overrides", {})
     def mapped(name):
         for before in sorted(mappings, key=len, reverse=True):

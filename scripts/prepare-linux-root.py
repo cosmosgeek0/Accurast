@@ -9,7 +9,7 @@ import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from recover import RecoveryError, private_dir, relative, require, sha, write_json
+from recover import RecoveryError, private_dir, relative, require, sha, snapshot_file, write_json
 
 ARCH_ALIASES = {"amd64": "x86_64", "arm64": "aarch64"}
 
@@ -19,7 +19,7 @@ def arch(value):
 
 
 def captured_arch(snapshot):
-    text = (snapshot / "metadata/uname.txt").read_text()
+    text = snapshot_file(snapshot, "metadata/uname.txt").read_text()
     found = re.findall(r"\b(x86_64|aarch64|arm64|amd64)\b", text)
     require(found, "Captured host architecture unavailable")
     require(len(set(map(arch, found))) == 1, "Ambiguous captured host architecture")
@@ -41,7 +41,7 @@ def validate_platform(snapshot, config, native=False):
     require(config.get("target_platform") == "linux", "Replacement target must be Linux")
     require(target_arch == "match-captured-host" or arch(target_arch) == source_arch,
             "Replacement architecture differs from captured runtime; migration requires separate validated binaries")
-    source_os = os_release(snapshot / "etc/os-release")
+    source_os = os_release(snapshot_file(snapshot, "etc/os-release"))
     if native:
         require(platform.system() == "Linux" and arch(platform.machine()) == source_arch,
                 "Native preparation requires matching Linux host architecture")
@@ -93,9 +93,9 @@ def prepare(snapshot, target, config, ownership=False, native=False):
     require(not (target / "var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED").exists(), "Live marker is present; refusing offline preparation")
     require(not ownership or os.geteuid() == 0, "Ownership restoration requires root")
     platform_report = validate_platform(snapshot, config, native)
-    units = json.loads((snapshot / "metadata/systemd.json").read_text())
-    source_users = table(snapshot / "metadata/accounts.txt", 7)
-    source_groups = table(snapshot / "metadata/groups.txt", 4)
+    units = json.loads(snapshot_file(snapshot, "metadata/systemd.json").read_text())
+    source_users = table(snapshot_file(snapshot, "metadata/accounts.txt"), 7)
+    source_groups = table(snapshot_file(snapshot, "metadata/groups.txt"), 4)
     uid_map = {int(row[2]): row for row in source_users.values()}
     gid_map = {int(row[2]): row for row in source_groups.values()}
     manifest = json.loads((snapshot / "manifest.json").read_text())
@@ -177,7 +177,7 @@ def prepare(snapshot, target, config, ownership=False, native=False):
         policy.write_text(policy_text)
         policy.chmod(0o755)
     package_rows = []
-    for line in (snapshot / "metadata/dpkg-packages.txt").read_text().splitlines():
+    for line in snapshot_file(snapshot, "metadata/dpkg-packages.txt").read_text().splitlines():
         fields = line.split("\t")
         require(len(fields) == 3, "Invalid captured package/version record")
         package_rows.append(dict(zip(("package", "version", "architecture"), fields)))

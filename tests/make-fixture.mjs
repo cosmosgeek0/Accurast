@@ -24,5 +24,18 @@ save('var/lib/wdi-acurast-manager/workers.json','{}');
 save('var/lib/wdi-acurast-native/operator_ed25519','synthetic-non-key');
 save('var/lib/wdi-acurast-telemetry/deployments.json','[]');
 save('etc/systemd/system/example.service','[Service]\nExecStart=/bin/false\n');
+const paws='var/lib/wdi/companion-apps/pawns-core-20261008/';
+const psource='home/ubuntu/grass-single-lead/addons/pawns/20261008/';
+const pencrypt = value => crypto.publicEncrypt({key:pair.publicKey,oaepHash:'sha256',padding:crypto.constants.RSA_PKCS1_OAEP_PADDING},value);
+const paccount={email:'synthetic@example.invalid',password:'synthetic-password'};
+const pidentity={job_id:'1',device_id:'synthetic-pawns-device',account_tag:hash(paccount.email).slice(0,16)};
+const psession=Buffer.from(JSON.stringify({...pidentity,access_token:'synthetic-pawns-token'}));
+save(paws+'auth-envelope.key',privateKey);
+save(psource+'auth-envelope.pub',pair.publicKey.export({type:'spki',format:'pem'}));
+save(psource+'account.encrypted',pencrypt(Buffer.from(JSON.stringify(paccount))));
+save(paws+'1.json',JSON.stringify(pidentity));
+const pchunks=[];
+for(let offset=0;offset<psession.length;offset+=100)pchunks.push(pencrypt(psession.subarray(offset,offset+100)).toString('base64'));
+save(paws+'1-session.sealed.json',JSON.stringify({algorithm:'RSA-OAEP-SHA256-chunks',chunks:pchunks,plain_sha256:hash(psession),device_id:pidentity.device_id,job_id:'1'}));
 key.fill(0);
 
