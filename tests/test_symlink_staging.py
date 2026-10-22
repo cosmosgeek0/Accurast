@@ -24,6 +24,15 @@ class StagingSymlinkChains(unittest.TestCase):
             self.assertEqual((root/"opt/runtime/library.so").resolve(),library)
             self.assertEqual(unresolved,["etc/systemd/system/held.service"])
             self.assertFalse((root/"etc/systemd/system/held.service").is_symlink())
+    def test_service_alias_receives_missing_marker_fence(self):
+        with tempfile.TemporaryDirectory()as temporary:
+            root=Path(temporary).resolve();source=root/"opt/runtime/worker.service"
+            source.parent.mkdir(parents=True);source.write_text("[Service]\nExecStart=/bin/false\n")
+            stage.fence_units(root,{"alias.service"})
+            stage.restore_symlinks(root,{"etc/systemd/system/alias.service":{"target":"/opt/runtime/worker.service"}},PurePosixPath)
+            self.assertTrue((root/"etc/systemd/system/alias.service").is_symlink())
+            self.assertIn("ConditionPathExists=",(root/"etc/systemd/system/alias.service.d/00-disaster-recovery-fence.conf").read_text())
+            self.assertFalse((root/"var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED").exists())
 
 
 if __name__=="__main__":unittest.main()

@@ -62,6 +62,14 @@ def sqlite_sidecars(files, file_sources, backups):
     return selected
 
 
+def fence_units(target, units):
+    for unit in units:
+        require(Path(unit).name == unit and unit.endswith((".service", ".timer", ".socket", ".path")), "Invalid fenced unit name")
+        dropin = private_dir(target / "etc/systemd/system" / (unit + ".d"))
+        (dropin / "00-disaster-recovery-fence.conf").write_text(
+            "[Unit]\nConditionPathExists=/var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED\n")
+
+
 def main():
     os.umask(0o077)
     p = argparse.ArgumentParser(description=__doc__)
@@ -150,10 +158,10 @@ def main():
             units.add(Path(name).name)
         count += 1
     # A missing marker fences even an accidental boot of this offline filesystem.
-    for unit in units:
-        dropin = private_dir(target / "etc/systemd/system" / (unit + ".d"))
-        (dropin / "00-disaster-recovery-fence.conf").write_text(
-            "[Unit]\nConditionPathExists=/var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED\n")
+    for name, rec in manifest.get("symlinks", {}).items():
+        if name.startswith("etc/systemd/system/") and name.count("/") == 3 and name.endswith((".service", ".timer", ".socket", ".path")):
+            units.add(Path(name).name)
+    fence_units(target, units)
     # Rebuild only links whose target is present inside the offline tree. Rewrite
     # absolute links as relative links so inspection cannot escape to this host.
     unresolved, links_restored, enabled_links_skipped = restore_symlinks(target, manifest.get("symlinks", {}), mapped)
