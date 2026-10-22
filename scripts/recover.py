@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import platform
 import re
 import shutil
 import sqlite3
@@ -249,6 +250,41 @@ def snapshot_file(root, name, manifest=None):
     record = manifest["files"][final_name]
     require(path.stat().st_size == record["bytes"] and sha(path) == record["sha256"], "Captured target digest mismatch")
     return path
+
+
+def restore_directory_metadata(target, directories, mapped, ownership=False):
+    """Apply directory owner before mode; defer special bits outside explicit Linux restoration."""
+    target = Path(target).absolute()
+    require(target.resolve() != Path("/"), "Live root is forbidden for directory restoration")
+    if ownership:
+        require(platform.system() == "Linux" and os.geteuid() == 0,
+                "Original directory ownership/special modes require explicit root restoration on Linux")
+    count, special = 0, 0
+    for name, record in sorted(directories.items(), key=lambda row: -len(row[0])):
+        relative(name)
+        dest = target.joinpath(*mapped(name).parts)
+        require(not dest.is_symlink() and all(not p.is_symlink() for p in dest.parents if p == target or target in p.parents),
+                "Directory metadata target has a symlink")
+        if not dest.exists(): dest.mkdir(parents=True, mode=0o700)
+        require(dest.is_dir(), "Directory metadata target is not a directory")
+        mode = record.get("source_mode", 0o700)
+        if isinstance(mode, str): mode = int(mode, 8)
+        if mode & 0o7000: special += 1
+        if ownership:
+            os.chown(dest, record.get("source_uid", 0), record.get("source_gid", 0))
+        # chown can clear SGID: chmod must be the final permission operation.
+        wanted = mode & (0o7777 if ownership else 0o777)
+        dest.chmod(wanted)
+        require(dest.stat().st_mode & 0o7777 == wanted, "Restored directory mode read-back mismatch")
+        if ownership:
+            current = dest.stat()
+            require((current.st_uid,current.st_gid) == (record.get("source_uid",0),record.get("source_gid",0)),
+                    "Restored directory ownership read-back mismatch")
+        count += 1
+    return {"directories_verified":count, "special_modes_captured":special,
+            "special_modes_restored":special if ownership else 0,
+            "special_modes_deferred":0 if ownership else special,
+            "ownership_applied":ownership, "platform":platform.system()}
 
 
 def verify_sqlite(root, manifest):

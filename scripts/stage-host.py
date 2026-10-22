@@ -10,7 +10,7 @@ import shutil
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from recover import BASE, RecoveryError, private_dir, read_manifest, relative, require, sha, verify_tree, verify_host, write_json
+from recover import BASE, RecoveryError, private_dir, read_manifest, relative, require, restore_directory_metadata, sha, verify_tree, verify_host, write_json
 
 
 def restore_symlinks(target, symlinks, mapped):
@@ -90,6 +90,7 @@ def main():
     config = json.loads(Path(args.config).read_text())
     require(config.get("controller_mode") == "disabled-until-reconciled", "Controller mode must remain disabled")
     require(not args.preserve_ownership or os.geteuid() == 0, "Root required to restore ownership")
+    require(not args.preserve_ownership or platform.system() == "Linux", "Original numeric ownership is restored only on Linux")
     mappings = config.get("source_path_mapping", {})
     for before, after in mappings.items():
         require(before.startswith("/") and after.startswith("/"), "Path mappings must be absolute")
@@ -149,6 +150,8 @@ def main():
             images.append({"name": dest.name, "sha256": artifact["sha256"], "path": str(dest.relative_to(target))})
     control = private_dir(target / "var/lib/accurast-recovery")
     write_json(control / "migration-config.json", config)
+    # Final ownership precedes mode restoration so SGID inheritance survives.
+    directory_permissions = restore_directory_metadata(target, manifest.get("directories", {}), mapped, args.preserve_ownership)
     write_json(control / "staging-report.json", {"files_copied": count, "units_fenced": sorted(units),
         "source_manifest_sha256": source_hash, "source_platform": manifest.get("platform"),
         "supplement_manifests": supplements, "immutable_images": images,
@@ -158,24 +161,11 @@ def main():
         "symlinks_restored": links_restored, "unresolved_symlinks": unresolved,
         "enablement_links_intentionally_omitted": enabled_links_skipped,
         "directory_metadata_records": len(manifest.get("directories", {})),
+        "directory_permissions": directory_permissions,
         "live_actions_allowed": False,
         "warnings": ["Path and domain references inside captured code/config require review before boot.",
                      "Create required Linux service users and dependencies from captured metadata before installation.",
                      "Do not create the live approval marker before old-controller fencing and fresh reconciliation."]})
-    # Restore directory metadata last: private_dir deliberately uses 0700 while
-    # copying. Do not follow any symlink while applying directory ownership.
-    for name, rec in sorted(manifest.get("directories", {}).items(), key=lambda row: -len(row[0])):
-        dest = target.joinpath(*mapped(name).parts)
-        require(not dest.is_symlink(), "Directory metadata collides with symlink")
-        require(all(not parent.is_symlink() for parent in dest.parents if parent != target and target in parent.parents),
-                "Directory metadata has symlink parent")
-        if not dest.exists():
-            dest.mkdir(parents=True, mode=0o700)
-        mode = rec.get("source_mode", 0o700)
-        if isinstance(mode, str): mode = int(mode, 8)
-        dest.chmod(mode & 0o777)
-        if args.preserve_ownership:
-            os.chown(dest, rec.get("source_uid", 0), rec.get("source_gid", 0))
     print(json.dumps({"offline_root": str(target), "files_copied": count, "units_fenced": len(units), "services_started": 0}))
 
 

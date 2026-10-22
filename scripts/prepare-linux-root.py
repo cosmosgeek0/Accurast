@@ -9,7 +9,7 @@ import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from recover import RecoveryError, private_dir, relative, require, sha, snapshot_file, write_json
+from recover import RecoveryError, private_dir, relative, require, restore_directory_metadata, sha, snapshot_file, write_json
 
 ARCH_ALIASES = {"amd64": "x86_64", "arm64": "aarch64"}
 
@@ -92,6 +92,7 @@ def prepare(snapshot, target, config, ownership=False, native=False):
     require(config.get("controller_mode") == "disabled-until-reconciled", "Controllers must remain disabled")
     require(not (target / "var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED").exists(), "Live marker is present; refusing offline preparation")
     require(not ownership or os.geteuid() == 0, "Ownership restoration requires root")
+    require(not ownership or platform.system() == "Linux", "Original numeric ownership is restored only on Linux")
     platform_report = validate_platform(snapshot, config, native)
     units = json.loads(snapshot_file(snapshot, "metadata/systemd.json").read_text())
     source_users = table(snapshot_file(snapshot, "metadata/accounts.txt"), 7)
@@ -182,10 +183,22 @@ def prepare(snapshot, target, config, ownership=False, native=False):
         require(len(fields) == 3, "Invalid captured package/version record")
         package_rows.append(dict(zip(("package", "version", "architecture"), fields)))
     write_json(control / "packages.lock.json", {"packages": package_rows, "installed_by_recovery": False})
+    if ownership:
+        directory_permissions = restore_directory_metadata(target, manifest.get("directories", {}),
+            lambda name: relative(remap("/" + name).lstrip("/")), True)
+    else:
+        # A validation/preparation pass must not strip SGID already restored by
+        # a preceding explicit Linux staging pass. It performs no final chmod.
+        special_count = sum(bool((int(r["source_mode"],8) if isinstance(r["source_mode"],str) else r["source_mode"]) & 0o7000)
+                            for r in manifest.get("directories", {}).values())
+        directory_permissions = {"special_modes_captured":special_count,"special_modes_restored":0,
+                                 "special_modes_deferred":special_count,"ownership_applied":False,
+                                 "final_directory_mode_changes_performed":False}
     result = {**platform_report, "accounts_materialized": len(uid_need), "groups_materialized": len(gid_need),
               "service_directories_prepared": len(dirs), "unresolved_directory_properties": unresolved,
               "package_versions_recorded": len(package_rows), "packages_installed": False,
-              "ownership_applied": ownership, "services_started": 0, "live_actions_allowed": False}
+              "ownership_applied": ownership, "directory_permissions": directory_permissions,
+              "services_started": 0, "live_actions_allowed": False}
     write_json(control / "linux-preparation.json", result)
     return result
 
