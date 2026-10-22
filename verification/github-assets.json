@@ -1,0 +1,112 @@
+{
+  "checked_utc": "2026-10-22T08:17:34.256475+00:00",
+  "repository": "cosmosgeek0/Accurast",
+  "repository_private": true,
+  "release_draft": true,
+  "selected_artifacts": 15,
+  "selected_remote_assets": 17,
+  "assets": [
+    {
+      "name": "aws-host-state.tar.gz.part-001",
+      "bytes": 1073741824,
+      "sha256": "f14e1ca042352e323e378b84514296b3b2d8a7872d8e33f346afe4f26949b8d9",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-host-state.tar.gz.part-002",
+      "bytes": 1073741824,
+      "sha256": "52fac22cf4bb2c5b17b9cf5ca5a460b50b4c16215fe22e647e2df5f9f8634a3d",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-host-state.tar.gz.part-003",
+      "bytes": 965336127,
+      "sha256": "c3ab422cfd9a96cc4718d115f5497e331a47c339ffb905d52854dc644326713b",
+      "github_digest_matches": true
+    },
+    {
+      "name": "local-essential.tar.gz",
+      "bytes": 913522536,
+      "sha256": "67f4d6b32d8852f6a27e15e88eba038494f54a648c83713b03624d790a59b072",
+      "github_digest_matches": true
+    },
+    {
+      "name": "local-final-checkpoint.tar.gz",
+      "bytes": 206233,
+      "sha256": "9466b86cfced5aaaaf58b9cac5dde12ba4b84c8644e828f3b3faa444e2f1d74c",
+      "github_digest_matches": true
+    },
+    {
+      "name": "grass-desktop-8.1.0-prepared1.tar.xz",
+      "bytes": 329886852,
+      "sha256": "6b80f49554d7c04bdfae549fb5a9c6279a04b792f8b38313a6b54714a5b481fd",
+      "github_digest_matches": true
+    },
+    {
+      "name": "wine64_10.0-repack-6_amd64.deb",
+      "bytes": 272800,
+      "sha256": "4cdf8319d873c13210815c1aac18859a56ea21b0b2d35a3388dab881464ed488",
+      "github_digest_matches": true
+    },
+    {
+      "name": "libwine_10.0-repack-6_amd64.deb",
+      "bytes": 111365028,
+      "sha256": "702c99d2fbaef2a4966667e0cdabd477ed1754c1b3b5d4476606eaf5fd6e1444",
+      "github_digest_matches": true
+    },
+    {
+      "name": "libz-mingw-w64_1.2.13-dfsg-1_all.deb",
+      "bytes": 152484,
+      "sha256": "b9e73ca486bc2aa66da86b5724220d2dd7c8299636b1df74c3414757a2170615",
+      "github_digest_matches": true
+    },
+    {
+      "name": "four-app-startup-small.zip",
+      "bytes": 49646,
+      "sha256": "613125f8444d4aabe25b4f6260839eab7fa71f2383230fda302806515efe6567",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-runtime-supplement.tar.gz",
+      "bytes": 34996826,
+      "sha256": "b13370a25f324fcdb728ef20f4c5bdf8622978e350d90636f3a52e3f19d1be46",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-continuity-supplement.tar.gz",
+      "bytes": 35260935,
+      "sha256": "8d7b1e88ed7ae957279487fcb3fcad98ba7622d5ecd20c4130a30be487b7873f",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-credentials-supplement.tar.gz",
+      "bytes": 846,
+      "sha256": "907ba11a7e8055f20135b15a34c37b946c486e951954a30cb58744e19b3886c7",
+      "github_digest_matches": true
+    },
+    {
+      "name": "chain-sdk-dependencies.tar.gz",
+      "bytes": 52607500,
+      "sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-posix-acls.tar.gz",
+      "bytes": 3685,
+      "sha256": "4490d8195cee7a86c39a7b3ae2120bce3107a36aa44718b9148185e0ab2c4daf",
+      "github_digest_matches": true
+    },
+    {
+      "name": "pawns-checkpoint-20261022T022346Z.tar.gz",
+      "bytes": 86736198,
+      "sha256": "42299a134b477065bf2b6c631a44e82594cf0830900e556730ecda3db88c7977",
+      "github_digest_matches": true
+    },
+    {
+      "name": "aws-accounting-supplement.tar.gz",
+      "bytes": 6376246,
+      "sha256": "bd0764b6f016466894aeafcc9cd587ed16098e1e91514dec25f6ad7b08a00974",
+      "github_digest_matches": true
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "schema": 2,
+  "started_utc": "2026-10-22T08:32:41.680633+00:00",
+  "repository": "cosmosgeek0/Accurast",
+  "tag": "preservation-20261022",
+  "release_manifest_sha256": "96885b8411b262efad31426deeac0131b3a30bd882a99cd6c62da74a0ff61d88",
+  "mode": "isolated-no-launch-no-signing",
+  "artifacts": [
+    {
+      "name": "aws-host-state.tar.gz",
+      "kind": "snapshot",
+      "files_verified": 347768,
+      "vault": {
+        "ok": true,
+        "registry_entries": 3228,
+        "profiles_verified": 2843,
+        "unique_objects_verified": 3712,
+        "object_references": 4612,
+        "pending_without_profile": 385,
+        "preserved_leases": 2696,
+        "preserved_quarantines": 0,
+        "registry_revision": 35848,
+        "registry_fence": 8391,
+        "mode": "read-only-isolated"
+      },
+      "pawns": {
+        "ok": true,
+        "key_pair_verified": true,
+        "account_envelope_decrypted": true,
+        "saved_sessions_decrypted": 118,
+        "identity_account_bindings_verified": 118,
+        "provider_session_validity_checked": false,
+        "mode": "read-only-isolated-no-network"
+      },
+      "sqlite_databases_verified": 15,
+      "required_files_verified": 6
+    },
+    {
+      "name": "local-essential.tar.gz",
+      "kind": "local-state",
+      "files_verified": 41820,
+      "resumed": true
+    },
+    {
+      "name": "local-final-checkpoint.tar.gz",
+      "kind": "local-state",
+      "files_verified": 250,
+      "resumed": true
+    },
+    {
+      "name": "grass-desktop-8.1.0-prepared1.tar.xz",
+      "kind": "immutable",
+      "verified": true,
+      "resumed": true
+    },
+    {
+      "name": "wine64_10.0-repack-6_amd64.deb",
+      "kind": "immutable",
+      "verified": true,
+      "resumed": true
+    },
+    {
+      "name": "libwine_10.0-repack-6_amd64.deb",
+      "kind": "immutable",
+      "verified": true,
+      "resumed": true
+    },
+    {
+      "name": "libz-mingw-w64_1.2.13-dfsg-1_all.deb",
+      "kind": "immutable",
+      "verified": true,
+      "resumed": true
+    },
+    {
+      "name": "four-app-startup-small.zip",
+      "kind": "immutable",
+      "verified": true,
+      "resumed": true
+    },
+    {
+      "name": "aws-runtime-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 7,
+      "resumed": true
+    },
+    {
+      "name": "aws-continuity-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 877,
+      "resumed": true
+    },
+    {
+      "name": "aws-credentials-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 2,
+      "resumed": true
+    },
+    {
+      "name": "chain-sdk-dependencies.tar.gz",
+      "kind": "local-state",
+      "files_verified": 10374,
+      "resumed": true
+    },
+    {
+      "name": "aws-posix-acls.tar.gz",
+      "kind": "local-state",
+      "files_verified": 1,
+      "resumed": true
+    },
+    {
+      "name": "pawns-checkpoint-20261022T022346Z.tar.gz",
+      "kind": "local-state",
+      "files_verified": 3402,
+      "resumed": true
+    },
+    {
+      "name": "aws-accounting-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 3,
+      "resumed": true
+    }
+  ],
+  "outer_backup_encryption": false,
+  "separate_recovery_key_required": false,
+  "live_provisioning_tested": false,
+  "services_started": 0,
+  "transactions_signed": 0,
+  "reconciliation": {
+    "status": "not-reconciled-no-fresh-evidence",
+    "plan_file": "reconciliation-plan.json",
+    "plan_sha256": "22d58c36d77cb401c788392588d3b9faae7dd450342701884258d19ac21bec54",
+    "source_snapshot_sha256": "12637256227bae90252809f40fbf0ef7161af26f5ff8aff56fed69c701b14ff4",
+    "fresh_evidence_supplied": false,
+    "blockers": [
+      "fresh-chain-process-and-transaction-evidence-required"
+    ],
+    "live_actions_allowed": false
+  },
+  "ok": true,
+  "completed_utc": "2026-10-22T08:42:23.941269+00:00",
+  "tested_commit": "93a345f3cc0989991b8cba7f458926aff112ded6",
+  "download_provenance": "Every selected asset was downloaded from private GitHub into an initially empty cache; no original source archive was used in this restore.",
+  "fresh_clone": true,
+  "original_aws_or_mac_source_required": false,
+  "case_sensitive_test_filesystem": true
+}
