@@ -93,6 +93,13 @@
       "bytes": 3685,
       "kind": "local-state",
       "destination": "host-acls"
+    },
+    {
+      "name": "pawns-checkpoint-20261022T022346Z.tar.gz",
+      "sha256": "42299a134b477065bf2b6c631a44e82594cf0830900e556730ecda3db88c7977",
+      "bytes": 86736198,
+      "kind": "local-state",
+      "destination": "host-pawns-checkpoint"
     }
   ]
 }

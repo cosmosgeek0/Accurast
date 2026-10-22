@@ -43,6 +43,14 @@ python3 scripts/merge-local-delta.py --work /secure/Accurast-restored \
 
 Use that assembled owner-local tree for final local journals and Pawns repair/queue handoff context. It does not replace the separate authoritative host snapshot.
 
+The separately dated `host-pawns-checkpoint` was captured on 2026-10-22 at 02:23:21–02:23:46 UTC, after the main host capture. It preserves newer Pawns identities, saved sessions, holds, pacing, queue results and its consistent provider database. Keep it separate from the main snapshot: compare its dated state during live reconciliation, and do not pass it to `stage-host.py --supplement` or blindly overwrite the older host tree. The queue continued running during capture; stable per-file reads and a SQLite backup do not establish one global transaction across all files. Validate its original account/session keys independently with:
+
+```sh
+node scripts/verify-pawns.mjs /secure/Accurast-restored/restored/host-pawns-checkpoint
+```
+
+The `host-continuity` artifact is an earlier historical supplement. Its dated mutable files must also remain separate; the full host snapshot is authoritative for deployment and current Grass vault state.
+
 When `owner-sdk` is listed, assemble its preserved patched chain dependencies into another new owner-local tree:
 
 ```sh
