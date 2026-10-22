@@ -1,0 +1,30 @@
+{
+  "repository": "cosmosgeek0/Accurast",
+  "tag": "preservation-20261022",
+  "release_manifest_sha256": "96885b8411b262efad31426deeac0131b3a30bd882a99cd6c62da74a0ff61d88",
+  "started_utc": "2026-10-22T08:43:11.008957+00:00",
+  "completed_utc": "2026-10-22T08:47:46.050057+00:00",
+  "mode": "isolated-no-launch-no-signing",
+  "outer_backup_encryption": false,
+  "separate_recovery_key_required": false,
+  "services_started": 0,
+  "transactions_signed": 0,
+  "live_provisioning_tested": false,
+  "reconciliation": {
+    "status": "not-reconciled-no-fresh-evidence",
+    "plan_file": "reconciliation-plan.json",
+    "plan_sha256": "22d58c36d77cb401c788392588d3b9faae7dd450342701884258d19ac21bec54",
+    "source_snapshot_sha256": "12637256227bae90252809f40fbf0ef7161af26f5ff8aff56fed69c701b14ff4",
+    "fresh_evidence_supplied": false,
+    "blockers": [
+      "fresh-chain-process-and-transaction-evidence-required"
+    ],
+    "live_actions_allowed": false
+  },
+  "ok": true,
+  "tested_commit": "93a345f3cc0989991b8cba7f458926aff112ded6",
+  "artifacts_reverified_and_resumed": 15,
+  "file_hashes_reverified": 404504,
+  "original_report_sha256": "aef6ef2890380c41cad97546390a5b59777d2bfaa919ba9f34109210c934a3f8",
+  "all_artifacts_resumed": true
+}

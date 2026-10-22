@@ -1,16 +1,21 @@
 {
-  "state": "clean-restore-verified-staging-in-progress",
-  "updated_utc": "2026-10-22T08:43:27.668986+00:00",
+  "state": "offline-recovery-verified",
+  "updated_utc": "2026-10-22T09:01:13.431392+00:00",
   "repository_private_verified": true,
   "added_recovery_key_required": false,
   "raw_local_and_runtime_assets_uploaded": true,
   "native_identity_validation_passed": true,
-  "full_host_archive_published": false,
   "clean_clone_restore_passed": true,
   "live_provisioning_tested": false,
   "safe_to_delete_aws": false,
   "safe_to_reset_mac_claimed": false,
-  "offline_staging_passed": false,
-  "release_published": false,
-  "full_host_archive_uploaded": true
+  "offline_staging_passed": true,
+  "full_host_archive_uploaded": true,
+  "resume_verified": true,
+  "linux_permissions_validated": true,
+  "linux_permissions_applied": false,
+  "services_started": 0,
+  "transactions_signed": 0,
+  "separate_funding_wallet_signer_preserved": false,
+  "release_manifest_sha256": "96885b8411b262efad31426deeac0131b3a30bd882a99cd6c62da74a0ff61d88"
 }

@@ -1,6 +1,6 @@
 # Accurast recovery
 
-Current verification status is recorded in [verification/readiness.json](verification/readiness.json). A complete archive and a successful clean-clone restore are required before considering reset or deletion.
+The complete private GitHub restore and resume check passed: 15 artifacts and 404,504 file hashes verified. Offline staging and both ACL inventories also passed validation. Evidence and the remaining live-host prerequisites are recorded in [verification/readiness.json](verification/readiness.json), [verification/clean-restore.json](verification/clean-restore.json) and [verification/offline-staging.json](verification/offline-staging.json). A replacement Linux host has not been started; keep the existing AWS host until live replacement is validated.
 
 Private disaster-recovery kit for the owner's Acurast control host and original Grass, PacketStream, Proxyrack, Repocket, TraffMonetizer and Pawns state. The live host source, credentials, identities, journals and phone checkpoints are stored as private GitHub release archives. Git contains recovery tools and manifests; the recovery archives contain the actual original secret material.
 

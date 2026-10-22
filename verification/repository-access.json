@@ -1,9 +1,7 @@
 {
+  "checked_utc": "2026-10-22T09:01:37.955859+00:00",
   "repository": "cosmosgeek0/Accurast",
-  "url": "https://github.com/cosmosgeek0/Accurast",
-  "private": true,
-  "visibility": "private",
-  "owner": "cosmosgeek0",
+  "authenticated_private": true,
   "anonymous_api_http_status": 404,
-  "checked_utc": "2026-10-22T00:34:05.536113+00:00"
+  "credentials_printed": false
 }

@@ -8,6 +8,8 @@
 
 No separate backup key or password-manager login is needed. Private GitHub release archives contain the original app keys and credentials alongside their existing native encrypted state; the recovery kit adds no outer encryption layer.
 
+Use only the assets selected by `release-assets.json`. Earlier encrypted `.age` uploads remain as obsolete history and are not required or used by recovery. GitHub sign-in access must remain available after a reset.
+
 No old AWS URL or old Mac path is needed to retrieve the pinned artifacts. Use a canonical absolute work path without symlinked parent directories. Allow disk space for the downloaded archives and expanded trees; the local preservation archive is several GB uncompressed.
 
 The full Linux host snapshot contains distinct `Index.html` and `index.html` files, so its restore destination must use a case-sensitive filesystem: ordinary Linux filesystems or a case-sensitive APFS volume/image on macOS. A normal case-insensitive Mac volume cannot represent both files. Recovery checks for this before copying case-colliding members; it does not format or change any production disk.
@@ -105,6 +107,8 @@ On a replacement Linux machine, add `--require-native-platform` to reject a dist
 Some copied source files retain unnamed numeric owners (UID 501 in this capture). Their numeric metadata is preserved and reported without inventing a Linux account. Preparation rejects a replacement account already occupying such an ID; unresolved accounts actually referenced by a service still fail.
 
 The private migration audit lists missing executables/working directories, captured bind mounts, configured path changes, image placement and hostname references without copying URL credentials or query strings into its report. Resolve those items before activation. The staged directory is an application filesystem overlay, not a bootable Linux image; a compatible installed OS and its package dependencies remain necessary.
+
+The observed offline audit has six remaining references requiring Linux provisioning or exporter migration. `/usr/bin/unshare` and `/usr/sbin/sshd` are OS package binaries to install from the recorded Ubuntu package plan without opening inbound ports. The legacy `salad-public-flow.service` also requires `/home/salad/.hg1/hg-fleet`, `/home/salad/.hg1/earnfm`, `/home/salad/.hg1/pawns` and `/home/salad/.hg1/grass`. The first two are historical providers outside the six-app recovery scope. Current Grass and Pawns ledgers/views are preserved under `.hg1/apps/grass-acurast/` and `.hg1/apps/pawns-isolated/`; their fleet schemas are not interchangeable with the old exporter's `traffic.sqlite3`/`view.json` expectations. Keep the public-flow exporter/publisher fenced until its source roster and explicit adapters are reviewed and tested; do not create empty databases or blindly symlink these paths. The actual dashboard and telemetry code bind sources under `/opt/wdi/website/` are present. This audit does not prove that the complete dashboard or legacy public exporter has run on a replacement Linux host.
 
 When the ACL metadata supplement is listed, validate its original Linux POSIX ACLs after staging and account preparation:
 

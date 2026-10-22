@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "verified_utc": "2026-10-22T08:59:41.741568+00:00",
+  "scope": "Observed clean-clone offline staging and Mac permission validation; no live replacement-host boot or phone launches",
+  "final_code_commit": "b2e612129cd65d287eb1ddcc23245381b4fe83f9",
+  "source_manifest_sha256": "101288990b5bcd503f8d680231b1407289bd7e9561c4ae262388fcd06a2e440a",
+  "stage": {
+    "files_copied": 347767,
+    "directories_verified": 47760,
+    "symlinks_restored": 428,
+    "unresolved_symlink_count": 7,
+    "unresolved_symlink_reason": "Seven preserved historical /dev/null service masks await normal Linux /dev/null; all names now separately fenced",
+    "unit_fences": 117,
+    "immutable_images_verified": 5,
+    "sqlite_bases": 17,
+    "sqlite_sidecars_quarantined": 4
+  },
+  "preparation": {
+    "captured_architecture": "aarch64",
+    "captured_os": {
+      "ID": "ubuntu",
+      "VERSION_ID": "24.04"
+    },
+    "accounts_materialized": 9,
+    "groups_materialized": 10,
+    "unnamed_file_owner_uids_preserved": [
+      501
+    ],
+    "unnamed_file_owner_gids_preserved": [],
+    "service_directories_prepared": 42,
+    "unresolved_directory_properties": [],
+    "package_versions_recorded": 701,
+    "packages_installed": false,
+    "ownership_applied": false
+  },
+  "deferred_permissions": {
+    "original_numeric_ownership_applied": false,
+    "sgid_directories_captured": 5101,
+    "sgid_directories_applied": 0,
+    "sgid_directories_deferred": 5101,
+    "linux_acl_xattrs_applied": false
+  },
+  "acl": {
+    "main_paths_validated": 114,
+    "main_applicable_paths": 112,
+    "forensic_sidecar_acl_paths": 2,
+    "accounting_paths_validated": 4,
+    "target_account_identity_issues": [],
+    "applied": false
+  },
+  "audit": {
+    "source_files_scanned": 10709,
+    "unit_metadata_checked": 113,
+    "unfenced_units": [],
+    "missing_references": [
+      {
+        "unit": "wdi-platform-node1-runtime.service",
+        "field": "ExecStart",
+        "path": "/usr/bin/unshare"
+      },
+      {
+        "unit": "salad-public-flow.service",
+        "field": "BindReadOnlyPaths",
+        "path": "/home/salad/.hg1/hg-fleet"
+      },
+      {
+        "unit": "salad-public-flow.service",
+        "field": "BindReadOnlyPaths",
+        "path": "/home/salad/.hg1/earnfm"
+      },
+      {
+        "unit": "salad-public-flow.service",
+        "field": "BindReadOnlyPaths",
+        "path": "/home/salad/.hg1/pawns"
+      },
+      {
+        "unit": "salad-public-flow.service",
+        "field": "BindReadOnlyPaths",
+        "path": "/home/salad/.hg1/grass"
+      },
+      {
+        "unit": "wdi-provider-ssh.service",
+        "field": "ExecStart",
+        "path": "/usr/sbin/sshd"
+      }
+    ],
+    "current_dashboard_ingress_bind_sources_present": true,
+    "image_directory_present": true
+  },
+  "remaining_live_prerequisites": [
+    "Compatible Ubuntu24.04 ARM64 installed OS and captured package dependencies",
+    "Apply original Linux numeric ownership,SGID directory modes,and ACLs with supplied offline tools before service activation",
+    "Restore OS binaries /usr/bin/unshare and /usr/sbin/sshd without opening inbound ports",
+    "Keep legacy public-flow exporter/publisher fenced until its old Honeygain/EarnFM inputs are excluded or restored within authorized scope and explicit Grass/Pawns schema adapters are reviewed; current app fleet databases are not drop-in traffic.sqlite3 replacements",
+    "Fresh finalized transaction and physical-phone reconciliation,old-authority fencing,DNS/tunnel migration,and any required rental funding"
+  ],
+  "services_started": 0,
+  "transactions_signed": 0,
+  "live_provisioning_tested": false,
+  "source_originals_used": false,
+  "report_sha256": {
+    "stage": "a8b8bf6c58bc2e3be0af2128a7048f7fbdc203c0311d1fb0313e54cceb8ca5ed",
+    "prepare": "5993f7a221350dc61bb602f56c9411461bdff86859a8dc1c056491aaee3a51ec",
+    "audit": "40bbae8fded85b6a04d452e8c4ae7d7ef28fb52f9508c65718ccdb64c415ce2c",
+    "main_acls": "b3531a0fac09fa026f9762a7e7e56b4221d01480e695a90a81787c4865481ded",
+    "accounting_acls": "3f6402ac4836aff4bdac77babb1c27caa06bc3264a0417b7810b0ec28c37fad3"
+  }
+}
