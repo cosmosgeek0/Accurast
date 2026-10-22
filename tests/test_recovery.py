@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 
 BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE / "scripts"))
-from recover import MAX_MANIFEST_BYTES, RecoveryError, download_asset, preflight, read_manifest, sha, snapshot_file, verify_archive, verify_tree
+from recover import MAX_MANIFEST_BYTES, REQUIRED, RecoveryError, download_asset, preflight, read_manifest, sha, snapshot_file, verify_archive, verify_host, verify_tree
 from reconcile import reconcile
 merge_spec = importlib.util.spec_from_file_location("merge_local", BASE / "scripts/merge-local-delta.py")
 merge_module = importlib.util.module_from_spec(merge_spec)
@@ -100,6 +100,22 @@ class ArchiveSafety(unittest.TestCase):
 
 
 class CapturedSymlinkSafety(unittest.TestCase):
+    def test_required_telemetry_deployments_uses_captured_link_target(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve(); snapshot = root / "snapshot"
+            telemetry = "var/lib/wdi-acurast-telemetry/deployments.json"
+            files = {name:b"{}" for name in REQUIRED if name != telemetry}
+            files["etc/wdi-acurast-deployments.json"] = b"{}"
+            manifest = archive(root / "state.tar.gz", files)
+            verify_archive(root / "state.tar.gz", snapshot)
+            manifest["symlinks"] = {telemetry:{"target":"/etc/wdi-acurast-deployments.json"}}
+            self.assertFalse((snapshot / telemetry).exists())
+            with patch("recover.command",return_value=b'{"ok":true}'), patch("recover.verify_sqlite",return_value=0):
+                self.assertEqual(verify_host(snapshot,manifest)["required_files_verified"],len(REQUIRED))
+            (snapshot / "etc/wdi-acurast-deployments.json").write_bytes(b"tampered")
+            with patch("recover.command") as no_native_call:
+                with self.assertRaises(RecoveryError): verify_host(snapshot,manifest)
+                no_native_call.assert_not_called()
     def test_os_release_symlink_metadata_and_platform_check(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve()

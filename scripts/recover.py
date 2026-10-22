@@ -306,7 +306,8 @@ def verify_sqlite(root, manifest):
 
 
 def verify_host(root, manifest):
-    require(all((root / p).is_file() for p in REQUIRED), "Required authority/identity state absent")
+    for name in REQUIRED:
+        snapshot_file(root, name, manifest)
     raw = command(["node", str(BASE / "scripts/verify-vault.mjs"), str(root)], "Vault/profile consistency verification")
     vault = json.loads(raw)
     require(vault.get("ok") is True, "Vault validation did not succeed")
