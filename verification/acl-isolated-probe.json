@@ -1,0 +1,13 @@
+{
+  "probe_directory": "/tmp/accurast-acl-probe-601aejyd",
+  "linux_posix_acl_v2_roundtrip": true,
+  "access_fd_set_get": true,
+  "default_directory_fd_set_get": true,
+  "policy_sha256": "c84e2e43ba22567adc1f5b24bac7c0d93a6ad2004306c8adf8cfcdd2cd4aee89",
+  "production_paths_modified": false,
+  "services_started": 0,
+  "probe_files_retained": true,
+  "ssm_command_id": "4b022bea-abbf-48f3-a681-0615191d3af6",
+  "ssm_status": "Success",
+  "verified_utc": "2026-10-22T01:32:39.870027+00:00"
+}

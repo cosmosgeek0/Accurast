@@ -67,13 +67,15 @@
       "original_signing_material_preserved": true,
       "address_derived_from_saved_material": true,
       "derivation": "sr25519; SS58 format42",
-      "transaction_signed_during_validation": false
+      "transaction_signed_during_validation": false,
+      "archive_relative_path": "local/private/acurast-grass-20260928/wallet.json"
     },
     "funding": {
       "address": "5F5DF6Fe4Zuw6FdNCs4JAu8HcMFtapadMXQdCWa73XkAbQ1F",
       "signing_material_preserved": false,
       "signer_ownership_verified": false,
-      "external_prerequisite": "Owner must retain the original funding-wallet recovery material. MetaMask bridge-recipient history does not prove that this substrate signer exists in its encrypted keyring; that indivisible unrelated vault is excluded."
+      "external_prerequisite": "Owner must retain the original funding-wallet recovery material. MetaMask bridge-recipient history does not prove that this substrate signer exists in its encrypted keyring; that indivisible unrelated vault is excluded.",
+      "required_for_existing_rental_controller_restore": false
     }
   },
   "financial_snapshot": {
@@ -169,7 +171,6 @@
   "external_prerequisites": [
     "Owner GitHub access to the private repository and private release assets; no added backup encryption key",
     "Replacement Linux host with sufficient disk/architecture and reviewed machine-specific paths",
-    "Owner funding-wallet recovery material, separately retained",
     "Fresh rental funds and current on-chain availability for expired leases",
     "Fresh physical process/identity/IP evidence and transaction reconciliation before adoption or relaunch",
     "Domain/DNS/tunnel ownership and migration configuration"
@@ -178,5 +179,6 @@
     "No live replacement-host activation, new phone provisioning or duplicate earning client was tested.",
     "Exact rented phones and IPs are not guaranteed after leases expire.",
     "Hash verification demonstrates preserved bytes, not current provider credit or current lease health."
-  ]
+  ],
+  "optional_separate_wallet_recovery": "The funding-wallet signer is not included. Its owner-held recovery material is required only to recover that separate wallet."
 }

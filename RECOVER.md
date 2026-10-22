@@ -39,6 +39,18 @@ python3 scripts/merge-local-delta.py --work /secure/Accurast-restored \
 
 Use that assembled owner-local tree for final local journals and Pawns repair/queue handoff context. It does not replace the separate authoritative host snapshot.
 
+When `owner-sdk` is listed, assemble its preserved patched chain dependencies into another new owner-local tree:
+
+```sh
+python3 scripts/install-owner-sdk.py --owner-local /secure/Accurast-owner-local-current \
+  --sdk /secure/Accurast-restored/restored/owner-sdk \
+  --output /secure/Accurast-owner-local-with-sdk --platform linux-x64
+```
+
+Select `linux-arm64` for an ARM64 replacement control host, or `auto` on the intended host. The helper verifies the preserved package lock and files, restores SDK executable bits and points esbuild and both project dependency links at the matching preserved native binary. It performs no npm download, SDK execution, client launch or signing, and leaves both inputs unchanged.
+
+The original rental signer is `local/private/acurast-grass-20260928/wallet.json` inside that assembled owner-local tree. Its derived address is `5EM65P4HEtpkadoDXp9aRPzbGjxBCy6aCQUMLUmKMLC14JFu`. Keep its owner-only permissions and configure the preserved signing scripts to use that file during reviewed provisioning; do not generate a replacement wallet. The separate funding-wallet signer was not identified or backed up. It is not needed to restore this rental controller, but recovery of that other wallet requires its own owner-held material.
+
 ## Stage a replacement Linux host while fenced
 
 Use the captured host metadata (`metadata/systemd.json`, package list, users/groups, mounts and manifests) to match the Linux architecture, runtime dependencies, service UIDs/GIDs and filesystem permissions. A source package manifest is not proof that a dependency installed successfully; the replacement host must satisfy all captured runtime requirements.
@@ -51,6 +63,7 @@ python3 scripts/stage-host.py \
   --target-root /secure/replacement-root \
   --config /secure/recovery-config.json \
   --supplement /secure/Accurast-restored/restored/host-runtime \
+  --supplement /secure/Accurast-restored/restored/host-credentials \
   --artifact-work /secure/Accurast-restored
 ```
 
@@ -73,6 +86,19 @@ python3 scripts/audit-migration.py \
 On a replacement Linux machine, add `--require-native-platform` to reject a distribution/version/CPU mismatch before native provisioning, and `--apply-ownership` as root to apply numeric ownership. The default architecture matches the captured control host; it does not assume that the host CPU matches the Android phones. Account ID/name conflicts stop preparation. Package versions are recorded in `packages.lock.json`; packages are not installed by this helper. A `policy-rc.d` guard also blocks conventional package-triggered service starts inside the offline root.
 
 The private migration audit lists missing executables/working directories, captured bind mounts, configured path changes, image placement and hostname references without copying URL credentials or query strings into its report. Resolve those items before activation. The staged directory is an application filesystem overlay, not a bootable Linux image; a compatible installed OS and its package dependencies remain necessary.
+
+When the ACL metadata supplement is listed, validate its original Linux POSIX ACLs after staging and account preparation:
+
+```sh
+python3 scripts/restore-acls.py \
+  --snapshot /secure/Accurast-restored/restored/host \
+  --acl-root /secure/Accurast-restored/restored/host-acls \
+  --target-root /secure/replacement-root --config /secure/recovery-config.json
+```
+
+This validates captured access/default ACL binary hashes, permission masks, path types and numeric identities. On macOS it reports `validated-not-applied`. On Linux, after applying original ownership and preparing the matching user/group names, root may add `--apply-xattrs` to restore and read back the exact ACL bytes in the offline root. Missing/mismatched target account identities, symlinks, a live approval marker, unsupported filesystems and `/` are rejected. No service runs. Apply ACLs after ownership and mode changes, because later `chmod` operations can change ACL masks. Coverage is limited to the paths recorded in the supplement and is included in `acl-restoration.json`.
+
+The binary parser follows the [Linux POSIX ACL xattr format](https://raw.githubusercontent.com/torvalds/linux/master/include/uapi/linux/posix_acl_xattr.h). The isolated Linux probe in `verification/acl-isolated-probe.json` checks access/default xattr round trips only on newly created temporary files; it is not proof that the complete replacement host has had its ACLs applied.
 
 Recreate users/groups, bind mounts, runtime dependencies and image serving from the captured metadata. Restore Cloudflare tunnel credentials to the reviewed destination and update owner-controlled DNS/tunnel routing only after the replacement service is ready. Do not run the old and replacement control authority concurrently. Do not open inbound ports as a shortcut; the old host used SSM and tunnels.
 
