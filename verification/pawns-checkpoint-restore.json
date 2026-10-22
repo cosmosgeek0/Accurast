@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-22T02:42:29.420642+00:00",
+  "completed_utc": "2026-10-22T02:42:55.453846+00:00",
+  "clone_commit": "e01523fcfa75b0a3a1956acf3b7a3ea74df15f90",
+  "repository": "cosmosgeek0/Accurast",
+  "release_tag": "preservation-20261022",
+  "release_manifest_sha256": "a43569cee0434c0dec28bd8190685e98424921118ca9719e0678a669342943c0",
+  "preflight": {
+    "ok": true,
+    "checked_utc": "2026-10-22T02:42:29.420173+00:00",
+    "repository_private_checked": true,
+    "python": "3.9.6",
+    "mode": "isolated-no-launch-no-signing"
+  },
+  "artifact": {
+    "name": "pawns-checkpoint-20261022T022346Z.tar.gz",
+    "sha256": "42299a134b477065bf2b6c631a44e82594cf0830900e556730ecda3db88c7977",
+    "bytes": 86736198,
+    "kind": "local-state",
+    "destination": "host-pawns-checkpoint"
+  },
+  "downloaded_from_github_this_run": true,
+  "cache_initially_absent": true,
+  "source_archives_or_original_state_used": false,
+  "source_capture_metadata": {
+    "format": "accurast-pawns-checkpoint-v1",
+    "created_utc": "2026-10-22T02:23:46Z",
+    "consistency": "Per-file stable reads; stable key/account anchors; SQLite read transaction plus backup; queue/processes unchanged. No global atomic epoch is claimed."
+  },
+  "files_verified": 3402,
+  "sqlite_databases_verified": 1,
+  "native_pawns_validation": {
+    "ok": true,
+    "key_pair_verified": true,
+    "account_envelope_decrypted": true,
+    "saved_sessions_decrypted": 133,
+    "identity_account_bindings_verified": 133,
+    "provider_session_validity_checked": false,
+    "mode": "read-only-isolated-no-network"
+  },
+  "restoration_proof": {
+    "sha256": "42299a134b477065bf2b6c631a44e82594cf0830900e556730ecda3db88c7977",
+    "verified_utc": "2026-10-22T02:42:55.451800+00:00",
+    "member_manifest_sha256": "6b192767db2113b0814cae9d50714fc8220570cb40f41c7427fe8541e0f64adc"
+  },
+  "main_host_overlaid": false,
+  "global_consistent_epoch_claimed": false,
+  "services_started": 0,
+  "provider_api_calls": 0,
+  "transactions_signed": 0,
+  "complete_for_this_checkpoint": true,
+  "official_full_restore_complete": false,
+  "limitations": [
+    "The checkpoint preserves its recorded per-file and SQLite snapshot boundaries, not one globally frozen live-system epoch.",
+    "Native envelope/key/identity consistency does not establish current provider-session acceptance, current phone connectivity or active lease availability."
+  ]
+}

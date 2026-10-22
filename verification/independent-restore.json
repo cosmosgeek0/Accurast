@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-22T02:36:45.408731+00:00",
+  "download_clone_commit": "98c9df55f574c0ab4646d58ebde9f832b13b1822",
+  "extraction_clone_commit": "f49319b623e7e0dd5cd4d59bff80c9e84fde3140",
+  "release_manifest_sha256": "a43569cee0434c0dec28bd8190685e98424921118ca9719e0678a669342943c0",
+  "cloned_recover_sha256": "4a231e66da059f7e2f153a524b9e87e7387097bc96440af11d172df26ae93d17",
+  "preflight": {
+    "ok": true,
+    "checked_utc": "2026-10-22T02:36:43.728661+00:00",
+    "repository_private_checked": true,
+    "python": "3.9.6",
+    "mode": "isolated-no-launch-no-signing"
+  },
+  "download_provenance": "All bytes downloaded directly from the private GitHub release into an initially empty cache, with hashes rechecked after relocation to a case-sensitive test volume.",
+  "cache_relocation": [
+    {
+      "name": "aws-continuity-supplement.tar.gz",
+      "bytes": 35260935,
+      "sha256": "8d7b1e88ed7ae957279487fcb3fcad98ba7622d5ecd20c4130a30be487b7873f",
+      "verified_after_move": true
+    },
+    {
+      "name": "aws-credentials-supplement.tar.gz",
+      "bytes": 846,
+      "sha256": "907ba11a7e8055f20135b15a34c37b946c486e951954a30cb58744e19b3886c7",
+      "verified_after_move": true
+    },
+    {
+      "name": "aws-posix-acls.tar.gz",
+      "bytes": 3685,
+      "sha256": "4490d8195cee7a86c39a7b3ae2120bce3107a36aa44718b9148185e0ab2c4daf",
+      "verified_after_move": true
+    },
+    {
+      "name": "aws-runtime-supplement.tar.gz",
+      "bytes": 34996826,
+      "sha256": "b13370a25f324fcdb728ef20f4c5bdf8622978e350d90636f3a52e3f19d1be46",
+      "verified_after_move": true
+    },
+    {
+      "name": "chain-sdk-dependencies.tar.gz",
+      "bytes": 52607500,
+      "sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+      "verified_after_move": true
+    },
+    {
+      "name": "four-app-startup-small.zip",
+      "bytes": 49646,
+      "sha256": "613125f8444d4aabe25b4f6260839eab7fa71f2383230fda302806515efe6567",
+      "verified_after_move": true
+    },
+    {
+      "name": "grass-desktop-8.1.0-prepared1.tar.xz",
+      "bytes": 329886852,
+      "sha256": "6b80f49554d7c04bdfae549fb5a9c6279a04b792f8b38313a6b54714a5b481fd",
+      "verified_after_move": true
+    },
+    {
+      "name": "libwine_10.0-repack-6_amd64.deb",
+      "bytes": 111365028,
+      "sha256": "702c99d2fbaef2a4966667e0cdabd477ed1754c1b3b5d4476606eaf5fd6e1444",
+      "verified_after_move": true
+    },
+    {
+      "name": "libz-mingw-w64_1.2.13-dfsg-1_all.deb",
+      "bytes": 152484,
+      "sha256": "b9e73ca486bc2aa66da86b5724220d2dd7c8299636b1df74c3414757a2170615",
+      "verified_after_move": true
+    },
+    {
+      "name": "local-essential.tar.gz",
+      "bytes": 913522536,
+      "sha256": "67f4d6b32d8852f6a27e15e88eba038494f54a648c83713b03624d790a59b072",
+      "verified_after_move": true
+    },
+    {
+      "name": "local-final-checkpoint.tar.gz",
+      "bytes": 206233,
+      "sha256": "9466b86cfced5aaaaf58b9cac5dde12ba4b84c8644e828f3b3faa444e2f1d74c",
+      "verified_after_move": true
+    },
+    {
+      "name": "wine64_10.0-repack-6_amd64.deb",
+      "bytes": 272800,
+      "sha256": "4cdf8319d873c13210815c1aac18859a56ea21b0b2d35a3388dab881464ed488",
+      "verified_after_move": true
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "aws-continuity-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 877
+    },
+    {
+      "name": "aws-credentials-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 2
+    },
+    {
+      "name": "aws-posix-acls.tar.gz",
+      "kind": "local-state",
+      "files_verified": 1
+    },
+    {
+      "name": "aws-runtime-supplement.tar.gz",
+      "kind": "local-state",
+      "files_verified": 7
+    },
+    {
+      "name": "chain-sdk-dependencies.tar.gz",
+      "kind": "local-state",
+      "files_verified": 10374
+    },
+    {
+      "name": "four-app-startup-small.zip",
+      "kind": "immutable",
+      "verified": true
+    },
+    {
+      "name": "grass-desktop-8.1.0-prepared1.tar.xz",
+      "kind": "immutable",
+      "verified": true
+    },
+    {
+      "name": "libwine_10.0-repack-6_amd64.deb",
+      "kind": "immutable",
+      "verified": true
+    },
+    {
+      "name": "libz-mingw-w64_1.2.13-dfsg-1_all.deb",
+      "kind": "immutable",
+      "verified": true
+    },
+    {
+      "name": "local-essential.tar.gz",
+      "kind": "local-state",
+      "files_verified": 41820
+    },
+    {
+      "name": "local-final-checkpoint.tar.gz",
+      "kind": "local-state",
+      "files_verified": 250
+    },
+    {
+      "name": "wine64_10.0-repack-6_amd64.deb",
+      "kind": "immutable",
+      "verified": true
+    }
+  ],
+  "official_full_restore_complete": false,
+  "snapshot_artifact_processed": false,
+  "services_started": 0,
+  "transactions_signed": 0,
+  "source_archives_or_original_state_used": false,
+  "merge_result": {
+    "files_verified": 42058,
+    "delta_files": 250,
+    "source_inputs_modified": false
+  },
+  "sdk_install_result": {
+    "files_verified": 52428,
+    "symlinks_created": 4,
+    "sdk_platform": "darwin-arm64",
+    "native_esbuild_sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384",
+    "input_trees_modified": false,
+    "network_fetches": 0,
+    "programs_executed": 0,
+    "transactions_signed": 0
+  },
+  "github_restored_sdk_signer_smoke": {
+    "passed": true,
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.23.1",
+    "imports_from_isolated_tree": {
+      "@acurast/sdk/chain": "node_modules/@acurast/sdk/dist/chain/index.js",
+      "@polkadot/api": "node_modules/@polkadot/api/cjs/index.js",
+      "@polkadot/keyring": "node_modules/@polkadot/keyring/cjs/index.js",
+      "@polkadot/util-crypto": "node_modules/@polkadot/util-crypto/cjs/index.js",
+      "esbuild": "node_modules/esbuild/lib/main.js"
+    },
+    "wasm_crypto_initialized": true,
+    "archived_rental_signer_address_matches": true,
+    "synthetic_test_vector": null,
+    "address": "5EM65P4HEtpkadoDXp9aRPzbGjxBCy6aCQUMLUmKMLC14JFu",
+    "esbuild_version": "0.28.2",
+    "esbuild_transform_passed": true,
+    "network_disabled": true,
+    "chain_connections_created": 0,
+    "transactions_signed": 0
+  },
+  "completed_utc": "2026-10-22T02:39:40.325755+00:00",
+  "independent_artifacts_complete": true
+}

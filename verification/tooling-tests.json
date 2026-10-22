@@ -1,0 +1,12 @@
+{
+  "checked_utc": "2026-10-22T02:38:43.781638+00:00",
+  "tested_commit": "e01523fcfa75b0a3a1956acf3b7a3ea74df15f90",
+  "command": "python3 -m unittest discover -s tests -v",
+  "tests_run": 26,
+  "exit_code": 0,
+  "result": "passed",
+  "elapsed_seconds": 1.112,
+  "scope": "Synthetic recovery-tooling checks; real remote archive restoration is separately recorded.",
+  "live_services_started": 0,
+  "transactions_signed": 0
+}
