@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.pyc
+.recovery/
+restore*/
+*.agekey
+*.key
+*.pem
+*.tar
+*.tar.gz
+*.tar.xz
+*.age
+config/local.json
+
