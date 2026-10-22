@@ -102,6 +102,7 @@ def prepare(snapshot, target, config, ownership=False, native=False):
     manifest = json.loads((snapshot / "manifest.json").read_text())
     uid_need = {0, *staged.get("required_uids", [])}
     gid_need = {0, *staged.get("required_gids", [])}
+    service_uids, service_gids = {0}, {0}
     for record in list(manifest["files"].values()) + list(manifest.get("directories", {}).values()):
         uid_need.add(int(record.get("source_uid", 0))); gid_need.add(int(record.get("source_gid", 0)))
     for props in units.values():
@@ -109,14 +110,23 @@ def prepare(snapshot, target, config, ownership=False, native=False):
             value = props.get(key)
             if value:
                 require(value in source or value.isdecimal(), "Unresolved captured service account")
-                needed.add(int(source[value][2]) if value in source else int(value))
-    require(uid_need <= set(uid_map) and gid_need <= set(gid_map), "Captured file owner lacks account metadata")
+                ident = int(source[value][2]) if value in source else int(value)
+                needed.add(ident)
+                (service_uids if key == "User" else service_gids).add(ident)
+    require(service_uids <= set(uid_map) and service_gids <= set(gid_map), "Captured service account lacks account metadata")
+    orphan_uids, orphan_gids = uid_need - set(uid_map), gid_need - set(gid_map)
+    # Copied source archives can retain numeric owners that never had a Linux
+    # account. Preserve those IDs without inventing a login or assigning them.
+    uid_need &= set(uid_map); gid_need &= set(gid_map)
     for uid in uid_need:
         gid_need.add(int(uid_map[uid][3]))
     require(gid_need <= set(gid_map), "Captured primary group missing")
     etc = safe_target(target, "/etc"); etc.mkdir(mode=0o755, exist_ok=True)
     users, groups = table(etc / "passwd", 7), table(etc / "group", 4)
     shadow = table(etc / "shadow", 9)
+    require(not any(int(row[2]) in orphan_uids for row in users.values()) and
+            not any(int(row[2]) in orphan_gids for row in groups.values()),
+            "Replacement account occupies an unnamed captured numeric owner ID")
     for gid in sorted(gid_need):
         row = gid_map[gid]; name = row[0]
         require(not any(int(x[2]) == gid and x[0] != name for x in groups.values()), "Replacement group ID collision")
@@ -195,6 +205,8 @@ def prepare(snapshot, target, config, ownership=False, native=False):
                                  "special_modes_deferred":special_count,"ownership_applied":False,
                                  "final_directory_mode_changes_performed":False}
     result = {**platform_report, "accounts_materialized": len(uid_need), "groups_materialized": len(gid_need),
+              "unnamed_file_owner_uids_preserved":sorted(orphan_uids),
+              "unnamed_file_owner_gids_preserved":sorted(orphan_gids),
               "service_directories_prepared": len(dirs), "unresolved_directory_properties": unresolved,
               "package_versions_recorded": len(package_rows), "packages_installed": False,
               "ownership_applied": ownership, "directory_permissions": directory_permissions,

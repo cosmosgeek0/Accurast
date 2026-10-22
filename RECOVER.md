@@ -102,6 +102,8 @@ python3 scripts/audit-migration.py \
 
 On a replacement Linux machine, add `--require-native-platform` to reject a distribution/version/CPU mismatch before native provisioning, and `--apply-ownership` as root to apply numeric ownership. The default architecture matches the captured control host; it does not assume that the host CPU matches the Android phones. Account ID/name conflicts stop preparation. Package versions are recorded in `packages.lock.json`; packages are not installed by this helper. A `policy-rc.d` guard also blocks conventional package-triggered service starts inside the offline root.
 
+Some copied source files retain unnamed numeric owners (UID 501 in this capture). Their numeric metadata is preserved and reported without inventing a Linux account. Preparation rejects a replacement account already occupying such an ID; unresolved accounts actually referenced by a service still fail.
+
 The private migration audit lists missing executables/working directories, captured bind mounts, configured path changes, image placement and hostname references without copying URL credentials or query strings into its report. Resolve those items before activation. The staged directory is an application filesystem overlay, not a bootable Linux image; a compatible installed OS and its package dependencies remain necessary.
 
 When the ACL metadata supplement is listed, validate its original Linux POSIX ACLs after staging and account preparation:
