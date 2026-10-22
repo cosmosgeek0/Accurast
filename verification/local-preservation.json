@@ -155,7 +155,16 @@
         "verified": true
       }
     ],
-    "pawns_runtime_note": "The current Pawns implementation requires Wine10, QEMU and the exact Pawns DLL/runtime; these three official packages were preserved separately. No installation or client launch was performed."
+    "pawns_runtime_note": "The current Pawns implementation requires Wine10, QEMU and the exact Pawns DLL/runtime; these three official packages were preserved separately. No installation or client launch was performed.",
+    "qemu_audit": {
+      "prepared_grass_image_members_examined": 34928,
+      "prepared_image_qemu_x86_64_bytes": 4907096,
+      "prepared_image_qemu_x86_64_sha256": "9acb79d583808d6cfb38b59fedff7a45f175e2eac3dcdab05e8202dd479c21ab",
+      "current_pawns_qemu_x86_64_bytes": 3248928,
+      "current_pawns_qemu_x86_64_sha256": "e3be094fa0e64d9e29a11b9a3e230038851003f57d296ed214e8d953b495e69e",
+      "current_pawns_binary_preserved_in": "Runtime supplement nested PacketStream meter-v1.tar.gz; capture_aws independently verified actual bytes/hash and accompanying libraries/plugin.",
+      "source_behavior": "Current Pawns prepare.py initially writes /usr/bin wrappers, then replaces them before execution with the pinned PacketStream meter QEMU wrappers."
+    }
   },
   "external_prerequisites": [
     "Owner GitHub access to the private repository and private release assets; no added backup encryption key",

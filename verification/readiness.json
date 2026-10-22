@@ -1,0 +1,13 @@
+{
+  "state": "preservation-in-progress",
+  "updated_utc": "2026-10-22T01:06:40.297475+00:00",
+  "repository_private_verified": true,
+  "added_recovery_key_required": false,
+  "raw_local_and_runtime_assets_uploaded": true,
+  "native_identity_validation_passed": true,
+  "full_host_archive_published": false,
+  "clean_clone_restore_passed": false,
+  "live_provisioning_tested": false,
+  "safe_to_delete_aws": false,
+  "safe_to_reset_mac_claimed": false
+}

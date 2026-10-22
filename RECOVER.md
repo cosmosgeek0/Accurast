@@ -16,7 +16,7 @@ cd Accurast
 ./recover restore --work /secure/Accurast-restored
 ```
 
-The result is `/secure/Accurast-restored/restore-verification.json`; `ok: true` is required. Its artifact rows verify the downloaded hashes, exact file inventory, SQLite integrity and canonical vault/profile consistency. Downloaded archives and restored trees use owner-only permissions. The command has no signing, admission, launch or renewal capability. Keep recovery state in the private release assets and private restoration directories, outside git history.
+The result is `/secure/Accurast-restored/restore-verification.json`; `ok: true` is required. Its artifact rows verify the downloaded hashes, exact file inventory, SQLite integrity, canonical Grass vault/profile consistency and native Pawns account/session envelopes. Pawns verification checks the original key pair, decrypts every saved session, checks plaintext hashes and account/device bindings, and makes no provider request; it does not prove a saved token is still accepted. Downloaded archives and restored trees use owner-only permissions. The command has no signing, admission, launch or renewal capability. Keep recovery state in the private release assets and private restoration directories, outside git history.
 
 Keep the same work path to resume. Completed artifacts are checked again rather than re-extracted. A corrupt download, changed restored file, conflicting unverified destination or another recovery process fails closed. Move a failed artifact directory aside for inspection before retrying. `--offline` can reuse a complete asset cache, but does not verify current remote access.
 

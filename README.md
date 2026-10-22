@@ -1,5 +1,7 @@
 # Accurast recovery
 
+Current verification status is recorded in [verification/readiness.json](verification/readiness.json). A complete archive and a successful clean-clone restore are required before considering reset or deletion.
+
 Private disaster-recovery kit for the owner's Acurast control host and original Grass, PacketStream, Proxyrack, Repocket, TraffMonetizer and Pawns state. The live host source, credentials, identities, journals and phone checkpoints are stored as private GitHub release archives. Git contains recovery tools and manifests; the recovery archives contain the actual original secret material.
 
 Start with [RECOVER.md](RECOVER.md). With this repository cloned, the documented dependencies installed and GitHub CLI authenticated to the private repository, the entry command is:
@@ -8,7 +10,7 @@ Start with [RECOVER.md](RECOVER.md). With this repository cloned, the documented
 ./recover restore --work /secure/Accurast-restored
 ```
 
-It checks private GitHub access, downloads the pinned release assets, verifies SHA256 hashes, extracts into an isolated directory, verifies every archived file and database, and checks canonical Grass account/device/private-key consistency. There is no added backup-encryption layer or separate recovery key. The applications' existing encryption and original keys are preserved together as required for their operation. Re-running verifies and resumes completed artifacts without starting services, renting phones, broadcasting transactions or creating identities.
+It checks private GitHub access, downloads the pinned release assets, verifies SHA256 hashes, extracts into an isolated directory, verifies every archived file and database, checks canonical Grass account/device/private-key consistency, and decrypts saved Pawns sessions with their original key to validate account/device bindings. There is no added backup-encryption layer or separate recovery key. The applications' existing encryption and original keys are preserved together as required for their operation. Re-running verifies and resumes completed artifacts without starting services, renting phones, broadcasting transactions or creating identities.
 
 This command restores an isolated recovery copy. A replacement host requires the separate fenced staging and reconciliation steps in RECOVER.md. A successful isolated test does not prove live host provisioning, provider acceptance, phone availability or renewed leases. Original physical phones and IP addresses may no longer be available after lease expiry.
 
