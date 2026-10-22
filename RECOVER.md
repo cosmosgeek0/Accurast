@@ -76,6 +76,7 @@ python3 scripts/stage-host.py \
   --config /secure/recovery-config.json \
   --supplement /secure/Accurast-restored/restored/host-runtime \
   --supplement /secure/Accurast-restored/restored/host-credentials \
+  --supplement /secure/Accurast-restored/restored/host-accounting \
   --artifact-work /secure/Accurast-restored
 ```
 
@@ -84,6 +85,8 @@ For faithful Linux permissions, run staging as root with `--preserve-ownership` 
 The captured host has 5,101 SGID directories, including telemetry directories whose new files must inherit the original group. Explicit Linux ownership restoration applies `chown` before the original directory mode and verifies the result; file setuid/setgid bits are not restored. Mac staging records special directory modes as deferred. `prepare-linux-root.py --apply-ownership` reapplies original directory ownership and modes after its final directory changes, so a later `chown` cannot silently clear SGID. Apply POSIX ACLs only after this final ownership/mode step.
 
 Use `--supplement` only when that runtime artifact is listed in the release manifest; omit it otherwise. Supplements may add files or repeat identical hashes, and cannot silently overwrite changed authoritative files. `--artifact-work` copies pinned, already verified immutable assets into the configured image directory and records their hashes. The default directory matches the original Grass artifact location; a changed location requires the corresponding source/configuration references to be reviewed.
+
+For databases explicitly captured through the SQLite backup API, separately captured `-wal`, `-shm` and `-journal` files are copied into owner-only `var/lib/accurast-recovery/forensic-sqlite-sidecars/`, not beside the coherent database backup. Selection uses each main/supplement manifest's `sqlite_backups` records and verifies the base SQLite header; arbitrary similarly named files are not moved. The staging report retains each original path, hash and quarantine destination. Original archives and restored source trees remain unchanged. Migration and ACL checks verify quarantine and never recreate these sidecars at their database paths.
 
 Prepare the captured service account IDs, locked password entries and required home/state/runtime directories without executing any service or package installation script:
 
@@ -109,6 +112,18 @@ python3 scripts/restore-acls.py \
   --acl-root /secure/Accurast-restored/restored/host-acls \
   --target-root /secure/replacement-root --config /secure/recovery-config.json
 ```
+
+The accounting supplement carries its additional database/parent ACLs separately. After staging `host-accounting`, validate them with:
+
+```sh
+python3 scripts/restore-acls.py \
+  --snapshot /secure/Accurast-restored/restored/host \
+  --acl-root /secure/Accurast-restored/restored/host-accounting \
+  --policy-path metadata/posix-acls-accounting.json \
+  --target-root /secure/replacement-root --config /secure/recovery-config.json
+```
+
+This writes a separate accounting ACL report. ACLs belonging to quarantined database sidecars are validated and preserved as forensic metadata, but deliberately not applied; quarantine retains owner-only access.
 
 This validates captured access/default ACL binary hashes, permission masks, path types and numeric identities. On macOS it reports `validated-not-applied`. On Linux, after applying original ownership and preparing the matching user/group names, root may add `--apply-xattrs` to restore and read back the exact ACL bytes in the offline root. Missing/mismatched target account identities, symlinks, a live approval marker, unsupported filesystems and `/` are rejected. No service runs. Apply ACLs after ownership and mode changes, because later `chmod` operations can change ACL masks. Coverage is limited to the paths recorded in the supplement and is included in `acl-restoration.json`.
 

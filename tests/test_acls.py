@@ -82,6 +82,26 @@ class PosixAclSafety(unittest.TestCase):
                 with self.assertRaises(RecoveryError): acl.restore_acls(source,extra,target,config,apply=True)
                 setxattr.assert_not_called()
             self.assertEqual(state.read_bytes(),b"unchanged")
+    def test_sidecar_acl_validated_but_not_reapplied_or_recreated(self):
+        with tempfile.TemporaryDirectory()as temp:
+            root=Path(temp).resolve();source=root/"source";extra=root/"extra";target=root/"offline"
+            source.mkdir();extra.mkdir();target.mkdir()
+            passwd=b"root:x:0:0::/root:/bin/sh\noperator:x:1000:0::/nonexistent:/bin/false\n"
+            inventory(source,{"metadata/accounts.txt":passwd,"metadata/groups.txt":b"root:x:0:\n"})
+            name="var/lib/runtime/state.sqlite-wal"
+            policy={"schema":1,"entries":{name:{"kind":"file","source_uid":0,"source_gid":0,"source_mode":0o750,"access":value(ACL),"default":None}}}
+            policy_path="metadata/posix-acls-accounting.json"
+            inventory(extra,{policy_path:json.dumps(policy).encode()})
+            quarantine="var/lib/accurast-recovery/forensic-sqlite-sidecars/"+name
+            saved=target/quarantine;saved.parent.mkdir(parents=True);saved.write_bytes(b"forensic-wal")
+            control=target/"var/lib/accurast-recovery"
+            (control/"staging-report.json").write_text(json.dumps({"source_manifest_sha256":sha(source/"manifest.json"),
+                "sqlite_sidecar_quarantine":[{"original_path":name,"quarantine_path":quarantine,"sha256":sha(saved)}]}))
+            with patch.object(acl.platform,"system",return_value="Linux"),patch.object(acl.os,"geteuid",return_value=0),patch.object(acl.os,"setxattr",create=True)as setxattr:
+                result=acl.restore_acls(source,extra,target,{"controller_mode":"disabled-until-reconciled"},apply=True,policy_path=policy_path)
+                self.assertEqual(result["quarantined_sidecar_acl_paths"],[name])
+                self.assertEqual(result["applicable_acl_paths"],0)
+                self.assertFalse((target/name).exists());setxattr.assert_not_called()
 
 
 if __name__ == "__main__": unittest.main()

@@ -60,7 +60,7 @@ def numeric_accounts(path, field=2):
     return result
 
 
-def restore_acls(snapshot, acl_root, target, config, apply=False):
+def restore_acls(snapshot, acl_root, target, config, apply=False, policy_path="metadata/posix-acls.json"):
     snapshot, acl_root, target = Path(snapshot).absolute(), Path(acl_root).absolute(), Path(target).absolute()
     require(target.resolve() != Path("/") and target.resolve() not in (snapshot.resolve(), acl_root.resolve()),
             "Live root and source snapshots are forbidden ACL targets")
@@ -74,7 +74,7 @@ def restore_acls(snapshot, acl_root, target, config, apply=False):
     if apply:
         require(platform.system() == "Linux", "Applying Linux POSIX ACL xattrs requires Linux; validation only on this platform")
         require(os.geteuid() == 0, "Applying original ACLs requires root after numeric ownership preparation")
-    policy_file = snapshot_file(acl_root, "metadata/posix-acls.json")
+    policy_file = snapshot_file(acl_root, policy_path)
     policy = json.loads(policy_file.read_text())
     require(policy.get("schema") == 1 and isinstance(policy.get("entries"), dict), "Unsupported ACL policy schema")
     source_users = numeric_accounts(snapshot_file(snapshot, "metadata/accounts.txt"))
@@ -85,6 +85,7 @@ def restore_acls(snapshot, acl_root, target, config, apply=False):
     target_users = numeric_accounts(target / "etc/passwd") if (target / "etc/passwd").is_file() else {}
     target_groups = numeric_accounts(target / "etc/group") if (target / "etc/group").is_file() else {}
     mappings = config.get("source_path_mapping", {})
+    quarantine = {row["original_path"]:row for row in staged.get("sqlite_sidecar_quarantine", [])}
     def mapped(name):
         absolute = "/" + name
         for before in sorted(mappings, key=len, reverse=True):
@@ -92,18 +93,26 @@ def restore_acls(snapshot, acl_root, target, config, apply=False):
                 absolute = mappings[before].rstrip("/") + absolute[len(before):]; break
         return relative(absolute.lstrip("/"))
     prepared, named_uids, named_gids, owner_uids, owner_gids = [], set(), set(), set(), set()
+    quarantined_acl_paths = []
     for name, record in policy["entries"].items():
         relative(name)
         require(record.get("kind") in ("file", "directory"), "ACL path type must be file or directory")
         uid, gid = record["source_uid"], record["source_gid"]
         require(uid in source_users and gid in source_groups, "ACL owner identity missing from captured accounts")
-        owner_uids.add(uid); owner_gids.add(gid)
-        path = target.joinpath(*mapped(name).parts)
+        forensic = quarantine.get(name)
+        if forensic:
+            require(record["kind"] == "file", "Only SQLite sidecar files can have forensic ACL treatment")
+            path = target.joinpath(*relative(forensic["quarantine_path"]).parts)
+            original = target.joinpath(*mapped(name).parts)
+            require(not original.exists() and not original.is_symlink(), "Quarantined SQLite sidecar reappeared at source path")
+            require(path.is_file() and sha(path) == forensic["sha256"], "Forensic SQLite sidecar hash mismatch")
+        else:
+            path = target.joinpath(*mapped(name).parts)
         require(not path.is_symlink() and all(not p.is_symlink() for p in path.parents if p == target or target in p.parents), "ACL target or parent is symlinked")
         require(path.is_file() if record["kind"] == "file" else path.is_dir(), "Recorded ACL target is missing or has changed type")
         mode = record["source_mode"]
         if isinstance(mode, str): mode = int(mode, 8)
-        attrs = {}
+        attrs, entry_uids, entry_gids = {}, set(), set()
         for kind in ("access", "default"):
             value = record.get(kind)
             require(kind != "default" or value is None or record["kind"] == "directory", "Default ACL is valid only on a directory")
@@ -113,10 +122,15 @@ def restore_acls(snapshot, acl_root, target, config, apply=False):
                 continue
             raw, entries, acl_mode = parse_acl(value, set(source_users), set(source_groups))
             require(kind != "access" or acl_mode == (mode & 0o777), "Access ACL mask disagrees with captured mode")
-            named_uids.update(e["id"] for e in entries if e["tag"] == 2)
-            named_gids.update(e["id"] for e in entries if e["tag"] == 8)
+            entry_uids.update(e["id"] for e in entries if e["tag"] == 2)
+            entry_gids.update(e["id"] for e in entries if e["tag"] == 8)
             attrs["system.posix_acl_" + kind] = raw
         require(any(v is not None for v in attrs.values()), "Empty ACL entry should not be in ACL policy")
+        if forensic:
+            quarantined_acl_paths.append(name)
+            continue
+        owner_uids.add(uid); owner_gids.add(gid)
+        named_uids.update(entry_uids); named_gids.update(entry_gids)
         if apply:
             st = path.stat()
             require((st.st_uid, st.st_gid) == (uid, gid), "Apply original numeric ownership before ACLs")
@@ -139,7 +153,9 @@ def restore_acls(snapshot, acl_root, target, config, apply=False):
                     require(os.getxattr(fd, name) == raw, "Restored ACL read-back mismatch")
             finally: os.close(fd)
     return {"schema": 1, "policy_sha256": sha(policy_file), "source_manifest_sha256": staged["source_manifest_sha256"],
-            "recorded_acl_paths_validated": len(prepared), "named_user_ids": sorted(named_uids),
+            "recorded_acl_paths_validated": len(prepared) + len(quarantined_acl_paths),
+            "applicable_acl_paths":len(prepared), "quarantined_sidecar_acl_paths":quarantined_acl_paths,
+            "policy_path":policy_path, "named_user_ids": sorted(named_uids),
             "named_group_ids": sorted(named_gids), "target_account_identity_issues": identity_issues,
             "applied": apply, "platform": platform.system(),
             "status": "applied-and-read-back-verified" if apply else "validated-not-applied",
@@ -155,9 +171,11 @@ def main():
     p.add_argument("--target-root", required=True)
     p.add_argument("--config", required=True)
     p.add_argument("--apply-xattrs", action="store_true", help="Apply only to the offline Linux root; root and prior numeric ownership are required")
+    p.add_argument("--policy-path", default="metadata/posix-acls.json", help="Manifest-listed ACL policy within the restored supplement")
     args = p.parse_args()
-    result = restore_acls(args.snapshot, args.acl_root, args.target_root, json.loads(Path(args.config).read_text()), args.apply_xattrs)
-    write_json(Path(args.target_root) / "var/lib/accurast-recovery/acl-restoration.json", result)
+    result = restore_acls(args.snapshot, args.acl_root, args.target_root, json.loads(Path(args.config).read_text()), args.apply_xattrs, args.policy_path)
+    report_name = "acl-restoration.json" if args.policy_path == "metadata/posix-acls.json" else Path(args.policy_path).stem + "-restoration.json"
+    write_json(Path(args.target_root) / "var/lib/accurast-recovery" / report_name, result)
     print(json.dumps(result))
 
 

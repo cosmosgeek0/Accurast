@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-22T08:13:58.472626+00:00",
+  "completed_utc": "2026-10-22T08:14:09.591427+00:00",
+  "clone_commit": "a7b0d4d1e764afc551ba4bb06177b9f29e1188cf",
+  "repository": "cosmosgeek0/Accurast",
+  "release_tag": "preservation-20261022",
+  "cloned_recover_sha256": "d114716df577cb26ff1e4f39ec9ab402600e69b6ffaabdfcac90b65fae80ab42",
+  "artifact_descriptor_source": "Root-confirmed GitHub release asset size/digest before final manifest pin",
+  "artifact": {
+    "name": "aws-accounting-supplement.tar.gz",
+    "sha256": "bd0764b6f016466894aeafcc9cd587ed16098e1e91514dec25f6ad7b08a00974",
+    "bytes": 6376246,
+    "kind": "local-state",
+    "destination": "host-accounting"
+  },
+  "preflight": {
+    "ok": true,
+    "checked_utc": "2026-10-22T08:13:58.454152+00:00",
+    "repository_private_checked": true,
+    "python": "3.9.6",
+    "mode": "isolated-no-launch-no-signing"
+  },
+  "downloaded_from_github_this_run": true,
+  "cache_initially_absent": true,
+  "source_archives_or_original_state_used": false,
+  "files_verified": 3,
+  "sqlite_databases_verified": 2,
+  "sqlite_integrity_mode": "mode=ro&immutable=1; PRAGMA integrity_check",
+  "source_capture_metadata": {
+    "format": "accurast-runtime-supplement-v1",
+    "created_utc": "2026-10-22T03:10:12Z",
+    "capture_started_utc": "2026-10-22T03:10:08Z",
+    "scope": "Two current dashboard accounting databases; independent SQLite read transactions. Do not replay archived source WAL/SHM against these coherent backups.",
+    "consistency": "Per-database coherent backup; not a global epoch across two databases"
+  },
+  "restoration_proof": {
+    "sha256": "bd0764b6f016466894aeafcc9cd587ed16098e1e91514dec25f6ad7b08a00974",
+    "verified_utc": "2026-10-22T08:14:09.590569+00:00",
+    "member_manifest_sha256": "93bb8bb4c05853c544e84cce201dfa0eb3b8a40e3afc54ae734beaa98d7af882"
+  },
+  "main_host_overlaid": false,
+  "global_consistent_epoch_claimed": false,
+  "services_started": 0,
+  "transactions_signed": 0,
+  "provider_calls": 0,
+  "complete_for_accounting_supplement": true,
+  "official_full_restore_complete": false
+}

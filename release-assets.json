@@ -4,11 +4,28 @@
   "tag": "preservation-20261022",
   "artifacts": [
     {
-      "name": "aws-urgent-state.tar.gz",
-      "sha256": "3cde92f5b998c8db790c61ed54fbbccd98e99c7c3ad1b7eab98c6a3879371b47",
-      "bytes": 35907065,
+      "name": "aws-host-state.tar.gz",
+      "sha256": "12637256227bae90252809f40fbf0ef7161af26f5ff8aff56fed69c701b14ff4",
+      "bytes": 3112819775,
       "kind": "snapshot",
-      "destination": "host"
+      "destination": "host",
+      "parts": [
+        {
+          "name": "aws-host-state.tar.gz.part-001",
+          "sha256": "f14e1ca042352e323e378b84514296b3b2d8a7872d8e33f346afe4f26949b8d9",
+          "bytes": 1073741824
+        },
+        {
+          "name": "aws-host-state.tar.gz.part-002",
+          "sha256": "52fac22cf4bb2c5b17b9cf5ca5a460b50b4c16215fe22e647e2df5f9f8634a3d",
+          "bytes": 1073741824
+        },
+        {
+          "name": "aws-host-state.tar.gz.part-003",
+          "sha256": "c3ab422cfd9a96cc4718d115f5497e331a47c339ffb905d52854dc644326713b",
+          "bytes": 965336127
+        }
+      ]
     },
     {
       "name": "local-essential.tar.gz",
@@ -100,6 +117,13 @@
       "bytes": 86736198,
       "kind": "local-state",
       "destination": "host-pawns-checkpoint"
+    },
+    {
+      "name": "aws-accounting-supplement.tar.gz",
+      "sha256": "bd0764b6f016466894aeafcc9cd587ed16098e1e91514dec25f6ad7b08a00974",
+      "bytes": 6376246,
+      "kind": "local-state",
+      "destination": "host-accounting"
     }
   ]
 }

@@ -45,6 +45,23 @@ def restore_symlinks(target, symlinks, mapped):
     return unresolved, restored, enabled_skipped
 
 
+def sqlite_sidecars(files, file_sources, backups):
+    """Select exact sidecars only for explicitly transaction-backed SQLite bases."""
+    require(isinstance(backups, list), "Invalid SQLite backup metadata")
+    selected = {}
+    for entry in backups:
+        original = entry.get("path") if isinstance(entry, dict) else entry
+        require(isinstance(original, str), "Invalid SQLite backup path")
+        name = original.lstrip("/"); relative(name)
+        require(name in files and name in file_sources, "Declared SQLite backup is missing")
+        with (file_sources[name] / name).open("rb") as source:
+            require(source.read(16) == b"SQLite format 3\x00", "Declared SQLite backup has no SQLite header")
+        for suffix in ("-wal", "-shm", "-journal"):
+            sidecar = name + suffix
+            if sidecar in files: selected[sidecar] = name
+    return selected
+
+
 def main():
     os.umask(0o077)
     p = argparse.ArgumentParser(description=__doc__)
@@ -86,6 +103,9 @@ def main():
                 if category == "symlinks" and name in current:
                     require(current[name]["target"] == rec["target"], "Supplement changes symlink target")
                 current.setdefault(name, rec)
+        for database in extra_manifest.get("sqlite_backups", []):
+            if database not in manifest.setdefault("sqlite_backups", []):
+                manifest["sqlite_backups"].append(database)
         supplements.append({"manifest_sha256": sha(extra / "manifest.json"), "files": len(extra_manifest["files"])})
     config = json.loads(Path(args.config).read_text())
     require(config.get("controller_mode") == "disabled-until-reconciled", "Controller mode must remain disabled")
@@ -103,10 +123,13 @@ def main():
                 break
         return relative(absolute.lstrip("/"))
     count, units, mapped_names = 0, set(), set()
+    sidecars = sqlite_sidecars(manifest["files"], file_sources, manifest.get("sqlite_backups", []))
+    quarantined = []
     for name, rec in manifest["files"].items():
         if name.startswith("metadata/"):
             continue
-        dest_rel = mapped(name)
+        dest_rel = (relative("var/lib/accurast-recovery/forensic-sqlite-sidecars/" + name)
+                    if name in sidecars else mapped(name))
         require(str(dest_rel) not in mapped_names, "Path mapping collision")
         mapped_names.add(str(dest_rel))
         dest = target.joinpath(*dest_rel.parts)
@@ -114,9 +137,15 @@ def main():
         shutil.copyfile(file_sources[name] / name, dest)
         mode = rec.get("source_mode", 0o600)
         if isinstance(mode, str): mode = int(mode, 8)
-        dest.chmod(mode & 0o777)  # never restore setuid/setgid
-        if args.preserve_ownership:
+        dest.chmod(0o600 if name in sidecars else mode & 0o777)  # never restore file setuid/setgid
+        if args.preserve_ownership and name not in sidecars:
             os.chown(dest, rec.get("source_uid", 0), rec.get("source_gid", 0))
+        if name in sidecars:
+            require(sha(dest) == rec["sha256"], "Forensic SQLite sidecar copy differs from archive")
+            quarantined.append({"original_path":name, "mapped_original_path":str(mapped(name)),
+                "database_path":sidecars[name], "quarantine_path":str(dest_rel),
+                "sha256":rec["sha256"], "bytes":rec["bytes"], "source_mode":mode,
+                "source_uid":rec.get("source_uid",0), "source_gid":rec.get("source_gid",0)})
         if name.startswith("etc/systemd/system/") and name.count("/") == 3 and name.endswith((".service", ".timer", ".socket", ".path")):
             units.add(Path(name).name)
         count += 1
@@ -128,6 +157,9 @@ def main():
     # Rebuild only links whose target is present inside the offline tree. Rewrite
     # absolute links as relative links so inspection cannot escape to this host.
     unresolved, links_restored, enabled_links_skipped = restore_symlinks(target, manifest.get("symlinks", {}), mapped)
+    for row in quarantined:
+        original_target = target / row["mapped_original_path"]
+        require(not original_target.exists() and not original_target.is_symlink(), "Quarantined SQLite sidecar was recreated beside a database")
     images = []
     if args.artifact_work:
         release = read_manifest(args.release_manifest)
@@ -155,6 +187,7 @@ def main():
     write_json(control / "staging-report.json", {"files_copied": count, "units_fenced": sorted(units),
         "source_manifest_sha256": source_hash, "source_platform": manifest.get("platform"),
         "supplement_manifests": supplements, "immutable_images": images,
+        "sqlite_backups": manifest.get("sqlite_backups", []), "sqlite_sidecar_quarantine":quarantined,
         "required_uids": sorted({rec.get("source_uid", 0) for rec in manifest["files"].values()}),
         "required_gids": sorted({rec.get("source_gid", 0) for rec in manifest["files"].values()}),
         "staging_platform": platform.system(), "ownership_restored": args.preserve_ownership,

@@ -30,11 +30,12 @@ audit_module = importlib.util.module_from_spec(audit_spec)
 audit_spec.loader.exec_module(audit_module)
 
 
-def archive(path, files, extra=None):
+def archive(path, files, extra=None, metadata=None):
     records = {name: {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data), "source_mode": 0o600,
                      "source_uid": os.getuid(), "source_gid": os.getgid()} for name, data in files.items()}
     # Reverse manifest insertion order explicitly exercises gzip member-order reads.
     manifest = {"files": dict(reversed(list(records.items())))}
+    manifest.update(metadata or {})
     with tarfile.open(path, "w:gz") as t:
         for name, data in sorted({**files, "manifest.json": json.dumps(manifest).encode()}.items()):
             m = tarfile.TarInfo(name); m.size = len(data); m.mode = 0o600
@@ -215,12 +216,18 @@ class EndToEnd(unittest.TestCase):
                 conn.execute("CREATE TABLE receipts (tx TEXT PRIMARY KEY)")
                 conn.execute("INSERT INTO receipts VALUES ('synthetic-finalized')")
             plain = root / "snapshot.tar.gz"
-            archive(plain, {str(p.relative_to(fixture)): p.read_bytes() for p in fixture.rglob("*") if p.is_file()})
+            (fixture / "state.sqlite-wal").write_bytes(b"separately-captured-wal")
+            (fixture / "state.sqlite-journal").write_bytes(b"separately-captured-rollback-journal")
+            (fixture / "costs.sqlite-shm").write_bytes(b"separately-captured-shm")
+            (fixture / "unknown.sqlite-wal").write_bytes(b"unclassified-preserved-data")
+            archive(plain, {str(p.relative_to(fixture)): p.read_bytes() for p in fixture.rglob("*") if p.is_file()},
+                    metadata={"sqlite_backups":["/state.sqlite"]})
             work = root / "work"; cache = work / "asset-cache"; cache.mkdir(parents=True)
             asset = cache / "snapshot.tar.gz"
             shutil.copyfile(plain, asset)
             runtime = cache / "runtime.tar.gz"
-            archive(runtime, {"opt/runtime/bundle.tar.gz": b"synthetic-runtime"})
+            archive(runtime, {"opt/runtime/bundle.tar.gz": b"synthetic-runtime", "costs.sqlite":db.read_bytes()},
+                    metadata={"sqlite_backups":[{"path":"/costs.sqlite","method":"SQLite backup API"}]})
             immutable = cache / "prepared-image.tar.xz"
             immutable.write_bytes(b"synthetic-immutable-image")
             manifest = root / "release.json"
@@ -270,6 +277,14 @@ class EndToEnd(unittest.TestCase):
             self.assertFalse((target / "var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED").exists())
             self.assertEqual((target / "opt/runtime/bundle.tar.gz").read_bytes(), b"synthetic-runtime")
             self.assertEqual((target / "var/lib/wdi-acurast-native/artifacts/prepared-image.tar.xz").read_bytes(), b"synthetic-immutable-image")
+            staged_report = json.loads((target / "var/lib/accurast-recovery/staging-report.json").read_text())
+            quarantined = staged_report["sqlite_sidecar_quarantine"]
+            self.assertEqual({row["original_path"] for row in quarantined},{"state.sqlite-wal","state.sqlite-journal","costs.sqlite-shm"})
+            for row in quarantined:
+                self.assertFalse((target / row["original_path"]).exists())
+                self.assertEqual(sha(target / row["quarantine_path"]),row["sha256"])
+            self.assertEqual((target / "unknown.sqlite-wal").read_bytes(),b"unclassified-preserved-data")
+            self.assertEqual((work / "restored/host/state.sqlite-wal").read_bytes(),b"separately-captured-wal")
             conflict_archive = root / "conflict.tar.gz"
             archive(conflict_archive, {"etc/systemd/system/example.service": b"changed-service"})
             verify_archive(conflict_archive, root / "conflict")
@@ -287,6 +302,7 @@ class EndToEnd(unittest.TestCase):
             self.assertIn(":!:", (target / "etc/shadow").read_text())
             self.assertIn("exit 101", (target / "usr/sbin/policy-rc.d").read_text())
             report = audit_module.audit(work / "restored/host", target, config)
+            self.assertEqual(len(report["sqlite_sidecars_quarantined"]),3)
             self.assertTrue(any(row["path"] == "/usr/bin/missing-runtime" for row in report["missing_unit_references"]))
             serialized = json.dumps(report)
             self.assertNotIn("token=abc", serialized)

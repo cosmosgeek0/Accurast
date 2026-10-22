@@ -70,10 +70,17 @@ def audit(snapshot, target, config):
                for host, names in sorted(domain_occurrences.items())]
     image_path = config.get("image_directory", "")
     require(image_path.startswith("/"), "Image directory must be absolute")
+    quarantined = staged.get("sqlite_sidecar_quarantine", [])
+    for row in quarantined:
+        original = target / str(relative(row["mapped_original_path"]))
+        forensic = target / str(relative(row["quarantine_path"]))
+        require(not original.exists() and not original.is_symlink(), "SQLite sidecar reappeared beside coherent backup")
+        require(forensic.is_file() and not forensic.is_symlink() and sha(forensic) == row["sha256"], "Forensic SQLite sidecar proof mismatch")
     return {"source_files_scanned": scanned, "unit_checks": unit_rows, "missing_unit_references": missing,
             "bind_mounts_to_recreate_by_preserved_units": binds, "source_path_references_requiring_review": path_occurrences,
             "hostname_references": domains, "configured_image_directory": image_path,
             "image_directory_present": present(image_path), "references_rewritten": False,
+            "sqlite_sidecars_quarantined": quarantined,
             "services_started": 0, "live_actions_allowed": False,
             "limitations": ["References generated at runtime and provider-side acceptance need live validation.",
                             "Missing OS executables may be supplied by the pinned package plan; packages are not installed by this audit.",
