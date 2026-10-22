@@ -1,0 +1,32 @@
+{
+  "source_snapshot_sha256": "REPLACE_WITH_PINNED_PLAINTEXT_SNAPSHOT_SHA256",
+  "chain_finalized_block": "REPLACE_WITH_CURRENT_FINALIZED_BLOCK_HASH",
+  "chain_observed_at": 0,
+  "process_observed_at": 0,
+  "authority_fenced": false,
+  "journal_reconciled": false,
+  "wallets": [
+    {"role": "rental_wallet", "address": "REPLACE_WITH_PRESERVED_EXACT_ADDRESS", "free_pico": "0"},
+    {"role": "funding_wallet", "address": "REPLACE_WITH_SEPARATE_EXACT_ADDRESS", "free_pico": "0"}
+  ],
+  "transactions": [
+    {"hash": "REPLACE_WITH_PRESERVED_TRANSACTION_HASH", "status": "unknown"}
+  ],
+  "jobs": [
+    {
+      "job_id": 0,
+      "canonical_profile_hash": "REPLACE_WITH_PRESERVED_PROFILE_HASH",
+      "original_identity_matches": false,
+      "processor_matches": false,
+      "expected_ip_matches": false,
+      "observed_ip": null,
+      "lease_end": 0,
+      "assignment": "unknown",
+      "process": "unknown",
+      "admission_revoked": false,
+      "quarantined": false,
+      "held": false
+    }
+  ]
+}
+

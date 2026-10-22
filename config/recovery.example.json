@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "target_platform": "linux",
+  "target_architecture": "match-captured-host",
+  "source_path_mapping": {},
+  "domain_overrides": {},
+  "image_directory": "/srv/accurast/images",
+  "controller_mode": "disabled-until-reconciled",
+  "notes": "Copy this file outside git. Domain and path mappings are a migration plan, never a blind replacement inside keys or state."
+}
+

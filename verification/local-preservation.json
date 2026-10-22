@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "created_utc": "2026-10-22T00:30:48Z",
+  "artifacts": [
+    {
+      "name": "local-essential.tar.gz",
+      "sha256": "67f4d6b32d8852f6a27e15e88eba038494f54a648c83713b03624d790a59b072",
+      "bytes": 913522536,
+      "files": 41820
+    },
+    {
+      "name": "local-essential-delta.tar.gz",
+      "sha256": "77e01d1923845e1f0cfa6e5da521a4e5869288b97661105e3838d5b0b70f839e",
+      "bytes": 99989,
+      "files": 52
+    }
+  ],
+  "verification": [
+    {
+      "archive": "local-essential.tar.gz",
+      "verified_files": 41820,
+      "verified_uncompressed_bytes": 6156903141,
+      "all_hashes_match": true,
+      "relative_regular_only": true,
+      "unrelated_provider_paths_absent": true,
+      "elapsed_seconds": 9.93
+    },
+    {
+      "archive": "local-essential-delta.tar.gz",
+      "verified_files": 52,
+      "verified_uncompressed_bytes": 702174,
+      "all_hashes_match": true,
+      "relative_regular_only": true,
+      "unrelated_provider_paths_absent": true,
+      "elapsed_seconds": 0.01
+    }
+  ],
+  "coverage": {
+    "providers": [
+      "Grass",
+      "PacketStream",
+      "Proxyrack",
+      "Repocket",
+      "TraffMonetizer",
+      "Pawns"
+    ],
+    "core_preserved": [
+      "Original rental signing material and wallet ownership evidence",
+      "Original identity vault, account-transfer authority and client keys from scoped local private state",
+      "Local app source, dependency manifests and recovery patches",
+      "Original and historical Acurast job/lease receipts, transaction journals, refund/cancellation history, revocations, holds and reservations",
+      "Configured phone inventories, identity/IP mappings and checkpoints",
+      "Pawns account state, session snapshots, queue history, account pacing and current launch/source changes"
+    ],
+    "authoritative_deployed_source": "Current AWS snapshot supersedes historical local copies. Two intentionally divergent four-app local sources must not overwrite deployed patches.",
+    "excluded": [
+      "Unrelated EarnFM and Mysterium materials",
+      "Unrelated Akash account metadata",
+      "MetaMask vault and unrelated encrypted snap accounts",
+      "Generic execution logs, screenshots, reproducible caches/dependency trees and duplicated historical binary images"
+    ],
+    "filtered_files": 277
+  },
+  "wallets": {
+    "rental": {
+      "address": "5EM65P4HEtpkadoDXp9aRPzbGjxBCy6aCQUMLUmKMLC14JFu",
+      "original_signing_material_preserved": true,
+      "address_derived_from_saved_material": true,
+      "derivation": "sr25519; SS58 format42",
+      "transaction_signed_during_validation": false
+    },
+    "funding": {
+      "address": "5F5DF6Fe4Zuw6FdNCs4JAu8HcMFtapadMXQdCWa73XkAbQ1F",
+      "signing_material_preserved": false,
+      "signer_ownership_verified": false,
+      "external_prerequisite": "Owner must retain the original funding-wallet recovery material. MetaMask bridge-recipient history does not prove that this substrate signer exists in its encrypted keyring; that indivisible unrelated vault is excluded."
+    }
+  },
+  "financial_snapshot": {
+    "recorded_utc": "2026-10-21T18:39:59.756Z",
+    "chain_snapshot_utc": "2026-10-21T18:39:18.000Z",
+    "rental_free_ACU": 0.447484638472,
+    "funding_free_ACU": 0.004607627951,
+    "current_balance_verified_by_this_preservation_task": false,
+    "unsettled_reservations_in_saved_snapshot": 0,
+    "provider_account_credits_are_separate": true,
+    "new_rentals_require_funds": true
+  },
+  "transaction_preservation_audit": {
+    "scope": "Selected historical local receipt, journal, pending and budget JSON; preservation audit only, not a new chain reconciliation.",
+    "files_examined": 2753,
+    "distinct_broadcast_records": 4875,
+    "records_with_finalized_markers": 4865,
+    "records_with_generic_not_included_proof": 6,
+    "other_historical_records": 4,
+    "other_record_classification": [
+      "One has alternate expired-without-inclusion era proof",
+      "One has separate canonical-transaction-absent reconciliation",
+      "One is explicitly marked expired-unincluded in its old receipt",
+      "One historical receipt has only an InBlock phase locally; exact outcome requires fresh reconciliation before any attempted replay"
+    ],
+    "current_pending_spend_inferred_from_historical_records": false,
+    "signed_extrinsics_or_transaction_hashes_in_this_report": false,
+    "refund_journal_preserved": true,
+    "no_transaction_replay_performed": true
+  },
+  "source_cutoffs": {
+    "base_capture_started_utc": "2026-10-22T00:01:33Z",
+    "base_capture_consistency": "Each source file read with pre/post stability checks; SQLite uses backup API. This local archive is not a globally atomic host snapshot.",
+    "scope_filtered_utc": "2026-10-22T00:26:50Z",
+    "pawns_delta_snapshot_utc": "2026-10-22T00:17:58Z",
+    "scope_rebase_utc": "2026-10-22T00:28:16Z",
+    "pawns_critical_state_stability_window_seconds": 0.5,
+    "later_live_changes_not_inferred_saved": true
+  },
+  "pawns_frozen_snapshot": {
+    "queue_handle": 13946,
+    "queue_status": "running",
+    "in_progress_job": "314389",
+    "pending_queue_count": 152,
+    "snapshot_utc": "2026-10-22T00:17:58Z",
+    "do_not_start_another_queue": true,
+    "goal_complete": false,
+    "patched_launcher_and_sampler_match_owner_verified_remote_hashes": true,
+    "live_queue_may_have_advanced": true
+  },
+  "dependencies": {
+    "local_chain_package_versions": {
+      "@acurast/sdk": "1.5.0",
+      "@polkadot/api": "16.5.6",
+      "@polkadot/keyring": "14.0.3",
+      "@polkadot/util-crypto": "14.0.3"
+    },
+    "binary_artifacts": "Current host/runtime packages and immutable images are separate artifacts; source preservation alone does not prove they are available.",
+    "pawns_wine10_packages": [
+      {
+        "name": "wine64_10.0~repack-6_amd64.deb",
+        "url": "https://deb.debian.org/debian/pool/main/w/wine/wine64_10.0~repack-6_amd64.deb",
+        "sha256": "4cdf8319d873c13210815c1aac18859a56ea21b0b2d35a3388dab881464ed488",
+        "bytes": 272800,
+        "verified": true
+      },
+      {
+        "name": "libwine_10.0~repack-6_amd64.deb",
+        "url": "https://deb.debian.org/debian/pool/main/w/wine/libwine_10.0~repack-6_amd64.deb",
+        "sha256": "702c99d2fbaef2a4966667e0cdabd477ed1754c1b3b5d4476606eaf5fd6e1444",
+        "bytes": 111365028,
+        "verified": true
+      },
+      {
+        "name": "libz-mingw-w64_1.2.13+dfsg-1_all.deb",
+        "url": "https://deb.debian.org/debian/pool/main/libz/libz-mingw-w64/libz-mingw-w64_1.2.13+dfsg-1_all.deb",
+        "sha256": "b9e73ca486bc2aa66da86b5724220d2dd7c8299636b1df74c3414757a2170615",
+        "bytes": 152484,
+        "verified": true
+      }
+    ],
+    "pawns_runtime_note": "The current Pawns implementation requires Wine10, QEMU and the exact Pawns DLL/runtime; these three official packages were preserved separately. No installation or client launch was performed."
+  },
+  "external_prerequisites": [
+    "Owner GitHub access to the private repository and private release assets; no added backup encryption key",
+    "Replacement Linux host with sufficient disk/architecture and reviewed machine-specific paths",
+    "Owner funding-wallet recovery material, separately retained",
+    "Fresh rental funds and current on-chain availability for expired leases",
+    "Fresh physical process/identity/IP evidence and transaction reconciliation before adoption or relaunch",
+    "Domain/DNS/tunnel ownership and migration configuration"
+  ],
+  "limitations": [
+    "No live replacement-host activation, new phone provisioning or duplicate earning client was tested.",
+    "Exact rented phones and IPs are not guaranteed after leases expire.",
+    "Hash verification demonstrates preserved bytes, not current provider credit or current lease health."
+  ]
+}

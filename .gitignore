@@ -11,4 +11,5 @@ restore*/
 *.tar.xz
 *.age
 config/local.json
+key-storage.json
 

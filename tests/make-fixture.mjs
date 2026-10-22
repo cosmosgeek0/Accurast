@@ -1,0 +1,28 @@
+// Synthetic throwaway cryptographic fixture; no production identities or secrets.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const root = process.argv[2];
+const hash = b => crypto.createHash('sha256').update(b).digest('hex');
+const save = (name, data) => { const p=path.join(root,name); fs.mkdirSync(path.dirname(p),{recursive:true,mode:0o700});fs.writeFileSync(p,data,{mode:0o600}); };
+const pair=crypto.generateKeyPairSync('rsa',{modulusLength:2048});
+const privateKey=pair.privateKey.export({type:'pkcs8',format:'pem'});
+const key=crypto.randomBytes(32);
+const seal=(value,aad)=>{const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',key,iv);c.setAAD(Buffer.from(aad));const ciphertext=Buffer.concat([c.update(JSON.stringify(value)),c.final()]);return {v:1,iv:iv.toString('base64'),tag:c.getAuthTag().toString('base64'),ciphertext:ciphertext.toString('base64')};};
+const account='synthetic-test-account',identity={device_id:'synthetic-test-device',user_id:account,private_key:[...crypto.randomBytes(32)]};
+const binding={os:'android',arch:'arm64',binarySha256:'0'.repeat(64)};
+const profile={format:'grass-native-state-v1',binding,files:[{path:'device_identity.json',data:Buffer.from(JSON.stringify(identity)).toString('base64')}]};
+const object=Buffer.from(JSON.stringify(seal(profile,'grass-profile-v1:native:1'))),objectId=hash(object);
+const entry={object:objectId,deviceHash:hash(identity.device_id),keyHash:hash(Buffer.from(identity.private_key)),binding,
+  stateHash:hash(JSON.stringify({binding,files:profile.files})),lease:{host:'native',worker:'1',fence:5},quarantined:false};
+const state={format:'ip-identity-v1',accountHash:hash(account),revision:3,fence:5,entries:{'native:1':entry}};
+save('var/lib/wdi-acurast-manager/transfer-private.pem',privateKey);
+save('var/lib/wdi-acurast-manager/vault/key.json',JSON.stringify({format:'rsa-oaep-sha256',key:crypto.publicEncrypt({key:pair.publicKey,oaepHash:'sha256',padding:crypto.constants.RSA_PKCS1_OAEP_PADDING},key).toString('base64')}));
+save('var/lib/wdi-acurast-manager/vault/registry.json',JSON.stringify(seal(state,'grass-ip-registry-v1')));
+save('var/lib/wdi-acurast-manager/vault/objects/'+objectId+'.json',object);
+save('var/lib/wdi-acurast-manager/workers.json','{}');
+save('var/lib/wdi-acurast-native/operator_ed25519','synthetic-non-key');
+save('var/lib/wdi-acurast-telemetry/deployments.json','[]');
+save('etc/systemd/system/example.service','[Service]\nExecStart=/bin/false\n');
+key.fill(0);
+

@@ -1,0 +1,56 @@
+{
+  "schema": 2,
+  "repository": "cosmosgeek0/Accurast",
+  "tag": "preservation-20261022",
+  "artifacts": [
+    {
+      "name": "aws-urgent-state.tar.gz",
+      "sha256": "3cde92f5b998c8db790c61ed54fbbccd98e99c7c3ad1b7eab98c6a3879371b47",
+      "bytes": 35907065,
+      "kind": "snapshot",
+      "destination": "host"
+    },
+    {
+      "name": "local-essential.tar.gz",
+      "sha256": "67f4d6b32d8852f6a27e15e88eba038494f54a648c83713b03624d790a59b072",
+      "bytes": 913522536,
+      "kind": "local-state",
+      "destination": "owner-local"
+    },
+    {
+      "name": "local-essential-delta.tar.gz",
+      "sha256": "77e01d1923845e1f0cfa6e5da521a4e5869288b97661105e3838d5b0b70f839e",
+      "bytes": 99989,
+      "kind": "local-state",
+      "destination": "owner-local-delta"
+    },
+    {
+      "name": "grass-desktop-8.1.0-prepared1.tar.xz",
+      "sha256": "6b80f49554d7c04bdfae549fb5a9c6279a04b792f8b38313a6b54714a5b481fd",
+      "bytes": 329886852,
+      "kind": "immutable",
+      "destination": "images/grass-desktop-8.1.0-prepared1.tar.xz"
+    },
+    {
+      "name": "wine64_10.0-repack-6_amd64.deb",
+      "sha256": "4cdf8319d873c13210815c1aac18859a56ea21b0b2d35a3388dab881464ed488",
+      "bytes": 272800,
+      "kind": "immutable",
+      "destination": "images/pawns/wine64_10.0~repack-6_amd64.deb"
+    },
+    {
+      "name": "libwine_10.0-repack-6_amd64.deb",
+      "sha256": "702c99d2fbaef2a4966667e0cdabd477ed1754c1b3b5d4476606eaf5fd6e1444",
+      "bytes": 111365028,
+      "kind": "immutable",
+      "destination": "images/pawns/libwine_10.0~repack-6_amd64.deb"
+    },
+    {
+      "name": "libz-mingw-w64_1.2.13-dfsg-1_all.deb",
+      "sha256": "b9e73ca486bc2aa66da86b5724220d2dd7c8299636b1df74c3414757a2170615",
+      "bytes": 152484,
+      "kind": "immutable",
+      "destination": "images/pawns/libz-mingw-w64_1.2.13+dfsg-1_all.deb"
+    }
+  ]
+}

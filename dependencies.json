@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "recovery_tools": {
+    "python": {"minimum": "3.9", "tested": "3.9.6", "modules": ["standard library", "sqlite3"]},
+    "node": {"major": 22, "tested": "22.23.1", "packages": []},
+    "github_cli": {"tested": "2.103.0", "purpose": "Owner-authenticated private repository and release downloads"},
+    "git": {"tested": "2.54.0 (Apple Git-157)", "purpose": "Fresh clone and pinned code revision"},
+    "sqlite": {"tested": "3.51.0", "purpose": "Read-only database integrity verification"}
+  },
+  "production_dependencies": {
+    "source_of_truth": "Private host snapshot metadata/dpkg-packages.txt, metadata/systemd.json, metadata/uname.txt, captured lockfiles and binary hashes",
+    "installation": "Reconstruct on compatible Linux architecture using captured package/version evidence; preserve service ownership and mounts",
+    "validation": "Independent from isolated recovery validation; live host provisioning must be tested before service activation"
+  },
+  "provider_versions": {
+    "Grass_prepared_image": "8.1.0-prepared1",
+    "PacketStream_client": "2.5.0",
+    "PacketStream_bootstrap": "1.0.1",
+    "other_providers": "Use captured deployed binary hashes and manifests; no version is inferred from directory names"
+  },
+  "network": {"restore": "Authenticated github.com private release downloads", "old_AWS_required": false},
+  "live_provisioning_tested": false
+}
