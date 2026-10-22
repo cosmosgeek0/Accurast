@@ -1,0 +1,20 @@
+{
+  "archive": "aws-host-state.tar.gz",
+  "sha256": "12637256227bae90252809f40fbf0ef7161af26f5ff8aff56fed69c701b14ff4",
+  "bytes": 3112819775,
+  "files_verified": 347768,
+  "directories": 47755,
+  "symlinks": 435,
+  "canonical_profiles": 3228,
+  "canonical_objects": 2843,
+  "historical_and_current_objects": 4578,
+  "sqlite_backups": 15,
+  "all_member_hashes_match": true,
+  "verified_utc": "2026-10-22T08:14:47Z",
+  "consistency": {
+    "authority": "Core bytes unchanged across object copy; referenced current and historical object hashes verified",
+    "pawns": "Per-file stable reads and SQLite transaction backup; live queue continues, no cross-file atomicity claim",
+    "other_mutable": "Per-file bounded stable reads; changed files explicitly listed"
+  },
+  "scope": "Locally received source archive; independent GitHub restore is separately required."
+}
