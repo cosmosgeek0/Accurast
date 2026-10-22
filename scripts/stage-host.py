@@ -13,6 +13,38 @@ sys.path.insert(0, str(Path(__file__).parent))
 from recover import BASE, RecoveryError, private_dir, read_manifest, relative, require, sha, verify_tree, verify_host, write_json
 
 
+def restore_symlinks(target, symlinks, mapped):
+    unresolved, restored, enabled_skipped, pending = [], 0, 0, []
+    for name, rec in symlinks.items():
+        relative(name)
+        if ".wants/" in name or ".requires/" in name:
+            enabled_skipped += 1
+            continue
+        target_name = rec["target"]
+        require(isinstance(target_name, str) and target_name and "\\" not in target_name, "Invalid recorded symlink")
+        absolute_target = posixpath.normpath(target_name if target_name.startswith("/") else
+                                             posixpath.join("/" + posixpath.dirname(name), target_name))
+        link = target.joinpath(*mapped(name).parts)
+        resolved = target.joinpath(*mapped(absolute_target.lstrip("/")).parts)
+        pending.append((name, link, resolved))
+    while pending:
+        deferred, progress = [], 0
+        for name, link, resolved in pending:
+            if link.exists() or link.is_symlink():
+                unresolved.append(name)
+            elif not resolved.exists():
+                deferred.append((name, link, resolved))
+            else:
+                private_dir(link.parent)
+                os.symlink(os.path.relpath(resolved, link.parent), link)
+                restored += 1; progress += 1
+        if not progress:
+            unresolved.extend(name for name, _, _ in deferred)
+            break
+        pending = deferred
+    return unresolved, restored, enabled_skipped
+
+
 def main():
     os.umask(0o077)
     p = argparse.ArgumentParser(description=__doc__)
@@ -94,24 +126,7 @@ def main():
             "[Unit]\nConditionPathExists=/var/lib/accurast-recovery/LIVE-RECONCILIATION-APPROVED\n")
     # Rebuild only links whose target is present inside the offline tree. Rewrite
     # absolute links as relative links so inspection cannot escape to this host.
-    unresolved, links_restored, enabled_links_skipped = [], 0, 0
-    for name, rec in manifest.get("symlinks", {}).items():
-        relative(name)
-        if ".wants/" in name or ".requires/" in name:
-            enabled_links_skipped += 1
-            continue
-        target_name = rec["target"]
-        require(isinstance(target_name, str) and target_name and "\\" not in target_name, "Invalid recorded symlink")
-        absolute_target = posixpath.normpath(target_name if target_name.startswith("/") else
-                                             posixpath.join("/" + posixpath.dirname(name), target_name))
-        link = target.joinpath(*mapped(name).parts)
-        resolved = target.joinpath(*mapped(absolute_target.lstrip("/")).parts)
-        if link.exists() or link.is_symlink() or not resolved.exists():
-            unresolved.append(name)
-            continue
-        private_dir(link.parent)
-        os.symlink(os.path.relpath(resolved, link.parent), link)
-        links_restored += 1
+    unresolved, links_restored, enabled_links_skipped = restore_symlinks(target, manifest.get("symlinks", {}), mapped)
     images = []
     if args.artifact_work:
         release = read_manifest(args.release_manifest)
