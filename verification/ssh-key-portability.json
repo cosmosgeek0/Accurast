@@ -1,0 +1,24 @@
+{
+  "verified_utc": "2026-10-22T02:25:00.247489+00:00",
+  "keys": [
+    {
+      "role": "current-phone-operator",
+      "private_file_sha256": "69add4aa3dc10da77927866bb1cb60702ce929f61428a5d17e2f507d796bab14",
+      "public_key_derivation_without_passphrase": true,
+      "public_key_type": "ssh-ed25519",
+      "public_key_blob_sha256": "e8e07f50976be5c7b606263bc971cf8c8fe71c709c726b46020baa7fc02eea43",
+      "preserved_public_key_matches": true
+    },
+    {
+      "role": "preserved-local-operator",
+      "private_file_sha256": "e524fe252f2244edcf937edb464217aceccf93456819fca0ea4e2bb394cb42f9",
+      "public_key_derivation_without_passphrase": true,
+      "public_key_type": "ssh-ed25519",
+      "public_key_blob_sha256": "a576df70f16767c70a920448720ee13366e81ca6fe553296ec37e7e849c2f12d",
+      "preserved_public_key_matches": true
+    }
+  ],
+  "network_connections": 0,
+  "ssh_sessions_opened": 0,
+  "scope": "Offline parsing and key pairing only; does not test current phone reachability"
+}

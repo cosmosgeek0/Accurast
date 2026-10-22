@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "created_utc": "2026-10-22T02:05:54Z",
+  "artifact": {
+    "name": "chain-sdk-dependencies.tar.gz",
+    "sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+    "bytes": 52607500,
+    "files": 10374,
+    "uncompressed_bytes": 181532765,
+    "destination": "owner-sdk"
+  },
+  "pinned_versions": {
+    "@acurast/devtools": "1.1.0",
+    "@acurast/sdk": "1.5.0",
+    "@polkadot/api": "16.5.6",
+    "@polkadot/keyring": "14.0.3",
+    "@polkadot/util-crypto": "14.0.3",
+    "esbuild": "0.28.2",
+    "ipaddr.js": "2.5.0"
+  },
+  "preservation": {
+    "actual_used_dependency_tree_preserved": true,
+    "local_package_modifications_preserved_if_present": true,
+    "installed_packages": 123,
+    "package_lock_sha256": "87525a962b7a375e012f12f5bcbe3bf898c5aaf07da09a58d8913453aa1b0b93",
+    "required_locked_packages_missing": [],
+    "version_mismatches": [],
+    "all_archive_members_regular_relative_files": true,
+    "source_prefix": "local/project/archive/legacy-acurast-20260928",
+    "npm_installer_or_network_fetch_required_for_restore": false
+  },
+  "added_linux_platform_packages": [
+    {
+      "name": "@esbuild/linux-x64",
+      "version": "0.28.2",
+      "url": "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.28.2.tgz",
+      "npm_integrity": "sha512-4xTZr1FUmSoQW4XIWmit3tzQrUTZM+N3P0XV8xROKYF50XfI7xeO90+1bZvNwxIufQ9hDQVRJH5YhgPVF8A/HQ==",
+      "tarball_sha256": "9573bb2233aab0f9ea7647d5cca9726113cc1768de61d66b17267f4db84488f6",
+      "tarball_bytes": 4741809,
+      "binary_sha256": "e1698a3d5c6c0798fee4fd3b5cc816651f460c63d390a7a26ea4beb0b1884100",
+      "binary_bytes": 11427952,
+      "supported_platform": "linux-x64"
+    },
+    {
+      "name": "@esbuild/linux-arm64",
+      "version": "0.28.2",
+      "url": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.28.2.tgz",
+      "npm_integrity": "sha512-pW4AC0P3it8c7do9MVM4p51FzHzdM/TZrerurgRcHJ2WTa1VQ1CIq18xncfpBJw4ojkiZZrKW2yIBWBP92j6Ug==",
+      "tarball_sha256": "a96dbfa41d3ef5dbd1ef22b1c10d5187be9267e86093a870f06402a7ec931596",
+      "tarball_bytes": 4283627,
+      "binary_sha256": "90bd269553d258e80b19e3ccab4f98f0831f87442a2f056510ce24fd1b425fc2",
+      "binary_bytes": 10289264,
+      "supported_platform": "linux-arm64"
+    }
+  ],
+  "elf_architecture_checks": {
+    "linux-x64": {
+      "elf_machine": 62,
+      "architecture_matches": true
+    },
+    "linux-arm64": {
+      "elf_machine": 183,
+      "architecture_matches": true
+    }
+  },
+  "mac_fresh_extraction_test": {
+    "passed": true,
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.23.1",
+    "imports_from_isolated_tree": {
+      "@acurast/sdk/chain": "node_modules/@acurast/sdk/dist/chain/index.js",
+      "@polkadot/api": "node_modules/@polkadot/api/cjs/index.js",
+      "@polkadot/keyring": "node_modules/@polkadot/keyring/cjs/index.js",
+      "@polkadot/util-crypto": "node_modules/@polkadot/util-crypto/cjs/index.js",
+      "esbuild": "node_modules/esbuild/lib/main.js"
+    },
+    "wasm_crypto_initialized": true,
+    "archived_rental_signer_address_matches": true,
+    "synthetic_test_vector": null,
+    "address": "5EM65P4HEtpkadoDXp9aRPzbGjxBCy6aCQUMLUmKMLC14JFu",
+    "esbuild_version": "0.28.2",
+    "esbuild_transform_passed": true,
+    "network_disabled": true,
+    "chain_connections_created": 0,
+    "transactions_signed": 0,
+    "files_verified_before_test": 10374,
+    "artifact_sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+    "fresh_extraction": true,
+    "signer_input": "Original rental-wallet record read directly from the preserved local-essential archive; no old project dependency imports.",
+    "created_utc": "2026-10-22T02:00:33Z",
+    "linux_native_runtime_execution_tested": false
+  },
+  "linux_arm64_fresh_extraction_and_installer_test": {
+    "passed": true,
+    "platform": "linux",
+    "arch": "arm64",
+    "node": "v22.23.3",
+    "imports_from_isolated_tree": {
+      "@acurast/sdk/chain": "node_modules/@acurast/sdk/dist/chain/index.js",
+      "@polkadot/api": "node_modules/@polkadot/api/cjs/index.js",
+      "@polkadot/keyring": "node_modules/@polkadot/keyring/cjs/index.js",
+      "@polkadot/util-crypto": "node_modules/@polkadot/util-crypto/cjs/index.js",
+      "esbuild": "node_modules/esbuild/lib/main.js"
+    },
+    "wasm_crypto_initialized": true,
+    "archived_rental_signer_address_matches": false,
+    "synthetic_test_vector": "//Alice",
+    "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+    "esbuild_version": "0.28.2",
+    "esbuild_transform_passed": true,
+    "network_disabled": true,
+    "chain_connections_created": 0,
+    "transactions_signed": 0,
+    "artifact_sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+    "files_verified_before_test": 10374,
+    "fresh_extraction": true,
+    "installer_result": {
+      "files_verified": 10372,
+      "symlinks_created": 4,
+      "sdk_platform": "linux-arm64",
+      "native_esbuild_sha256": "90bd269553d258e80b19e3ccab4f98f0831f87442a2f056510ce24fd1b425fc2",
+      "input_trees_modified": false,
+      "network_fetches": 0,
+      "programs_executed": 0,
+      "transactions_signed": 0
+    },
+    "native_cli_version": "0.28.2",
+    "owner_signing_material_copied_to_aws": false,
+    "signer_input": "Public //Alice synthetic development vector only",
+    "minimal_owner_input": true,
+    "created_utc": "2026-10-22T02:03:58Z",
+    "node_source": "Existing preserved Node22.23.3 Linux ARM64 binary"
+  },
+  "installer_source_sha256": "2045b245ce8d993bf2a5d7b01a31732d6c549dd0a1e63746886b7f051ed3cc8b",
+  "documented_install_command": "python3 scripts/install-owner-sdk.py --owner-local /restore/owner-local-assembled --sdk /restore/owner-sdk --output /restore/owner-local-with-sdk --platform auto",
+  "safety": {
+    "owner_signing_material_copied_to_aws": false,
+    "wallet_seed_or_private_key_values_in_report": false,
+    "transactions_signed": 0,
+    "chain_connections_created": 0,
+    "earning_clients_started": 0,
+    "live_services_modified": 0,
+    "sdk_smoke_test_network_blocked": true,
+    "artifact_transfer_and_official_package_downloads_are_separate_from_offline_runtime_tests": true
+  },
+  "limits": [
+    "Linux ARM64 runtime and installer were executed with the public //Alice development vector only; the original rental-wallet derivation was checked on a fresh isolated Mac extraction.",
+    "Linux x64 esbuild tarball SRI, binary digest and ELF architecture were verified, but x64 Linux runtime execution was not exercised.",
+    "Darwin ARM64 and Linux ARM64 are executed test platforms; Windows, other CPUs and other Node major versions are not validated.",
+    "Linux installer test used a minimal secret-free owner source containing exact package and lock files, not live fleet state; final fresh GitHub restore and assembly still require the parent verification.",
+    "No chain reconciliation RPC, transaction signing, controller launch, phone provision or provider client launch was performed."
+  ]
+}

@@ -18,9 +18,9 @@
       "destination": "owner-local"
     },
     {
-      "name": "local-essential-delta.tar.gz",
-      "sha256": "77e01d1923845e1f0cfa6e5da521a4e5869288b97661105e3838d5b0b70f839e",
-      "bytes": 99989,
+      "name": "local-final-checkpoint.tar.gz",
+      "sha256": "9466b86cfced5aaaaf58b9cac5dde12ba4b84c8644e828f3b3faa444e2f1d74c",
+      "bytes": 206233,
       "kind": "local-state",
       "destination": "owner-local-delta"
     },
@@ -51,6 +51,48 @@
       "bytes": 152484,
       "kind": "immutable",
       "destination": "images/pawns/libz-mingw-w64_1.2.13+dfsg-1_all.deb"
+    },
+    {
+      "name": "four-app-startup-small.zip",
+      "sha256": "613125f8444d4aabe25b4f6260839eab7fa71f2383230fda302806515efe6567",
+      "bytes": 49646,
+      "kind": "immutable",
+      "destination": "images/four-app-startup-small.zip"
+    },
+    {
+      "name": "aws-runtime-supplement.tar.gz",
+      "sha256": "b13370a25f324fcdb728ef20f4c5bdf8622978e350d90636f3a52e3f19d1be46",
+      "bytes": 34996826,
+      "kind": "local-state",
+      "destination": "host-runtime"
+    },
+    {
+      "name": "aws-continuity-supplement.tar.gz",
+      "sha256": "8d7b1e88ed7ae957279487fcb3fcad98ba7622d5ecd20c4130a30be487b7873f",
+      "bytes": 35260935,
+      "kind": "local-state",
+      "destination": "host-continuity"
+    },
+    {
+      "name": "aws-credentials-supplement.tar.gz",
+      "sha256": "907ba11a7e8055f20135b15a34c37b946c486e951954a30cb58744e19b3886c7",
+      "bytes": 846,
+      "kind": "local-state",
+      "destination": "host-credentials"
+    },
+    {
+      "name": "chain-sdk-dependencies.tar.gz",
+      "sha256": "5b186d05eb2f4f1855f6ded7f5752be201c3f921ba67c35e8052eedd59d42103",
+      "bytes": 52607500,
+      "kind": "local-state",
+      "destination": "owner-sdk"
+    },
+    {
+      "name": "aws-posix-acls.tar.gz",
+      "sha256": "4490d8195cee7a86c39a7b3ae2120bce3107a36aa44718b9148185e0ab2c4daf",
+      "bytes": 3685,
+      "kind": "local-state",
+      "destination": "host-acls"
     }
   ]
 }
