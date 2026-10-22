@@ -10,6 +10,8 @@ No separate backup key or password-manager login is needed. Private GitHub relea
 
 No old AWS URL or old Mac path is needed to retrieve the pinned artifacts. Use a canonical absolute work path without symlinked parent directories. Allow disk space for the downloaded archives and expanded trees; the local preservation archive is several GB uncompressed.
 
+Archive inventories are bounded to 256 MiB of JSON to accommodate the captured host's large file/dependency inventory. The verifier holds archive member metadata and this inventory in memory while streaming file contents in archive order; it never loads whole payload archives into memory. Use a machine with enough available RAM for those metadata structures and enough disk space for both preserved trees and any staged copies. Path restrictions, exact manifest coverage and every member's SHA256 remain mandatory.
+
 ```sh
 gh repo clone cosmosgeek0/Accurast
 cd Accurast
@@ -17,6 +19,8 @@ cd Accurast
 ```
 
 The result is `/secure/Accurast-restored/restore-verification.json`; `ok: true` is required. Its artifact rows verify the downloaded hashes, exact file inventory, SQLite integrity, canonical Grass vault/profile consistency and native Pawns account/session envelopes. Pawns verification checks the original key pair, decrypts every saved session, checks plaintext hashes and account/device bindings, and makes no provider request; it does not prove a saved token is still accepted. Downloaded archives and restored trees use owner-only permissions. The command has no signing, admission, launch or renewal capability. Keep recovery state in the private release assets and private restoration directories, outside git history.
+
+The entry command also writes `reconciliation-plan.json`, bound to the selected snapshot hash. The default status is `not-reconciled-no-fresh-evidence`, with all live actions held. This explicit hold is not a claim that old transactions or phone state have been reconciled. Supply `--evidence /secure/fresh-evidence.json` to run the read-only planner after asset validation; an evidence snapshot-hash mismatch fails. The resulting plan is included by hash in the restore report, and no plan enables a launch or signature.
 
 Keep the same work path to resume. Completed artifacts are checked again rather than re-extracted. A corrupt download, changed restored file, conflicting unverified destination or another recovery process fails closed. Move a failed artifact directory aside for inspection before retrying. `--offline` can reuse a complete asset cache, but does not verify current remote access.
 
@@ -83,6 +87,14 @@ The read-only planner accepts explicit evidence in `config/reconciliation.exampl
 ```sh
 python3 scripts/reconcile.py /secure/fresh-evidence.json --out /secure/reconciliation-plan.json
 ```
+
+For the entry command to validate and bind that evidence to the restored snapshot, use:
+
+```sh
+./recover restore --work /secure/Accurast-restored --evidence /secure/fresh-evidence.json
+```
+
+Populate `source_snapshot_sha256` with the selected `kind: snapshot` artifact's SHA256 from `release-assets.json`. Supply evidence gathered from fresh finalized chain state and independent physical observations; this command performs no RPC, provider call or signing itself.
 
 The planner never authorizes a launch. It holds stale/unfenced/ambiguous state, pending transactions, duplicate identity/IP observations, revoked jobs and unresolved physical processes. A proven matching existing client becomes an adoption candidate. A proven stopped original identity on an eligible current assignment goes to review by the existing admission controller. New rentals require fresh funds and separate authorization.
 

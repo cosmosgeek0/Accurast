@@ -15,9 +15,13 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from reconcile import reconcile
 
 BASE = Path(__file__).resolve().parent.parent
 HASH = re.compile(r"^[a-f0-9]{64}$")
+# The observed production snapshot contains over 169,000 files plus directory
+# and symlink metadata. Bound its JSON inventory independently of payload size.
+MAX_MANIFEST_BYTES = 256 * 1024 * 1024
 REQUIRED = (
     "var/lib/wdi-acurast-manager/vault/key.json",
     "var/lib/wdi-acurast-manager/vault/registry.json",
@@ -136,7 +140,7 @@ def verify_archive(archive, extract_to=None):
             require(member.isfile() or member.isdir(), "Archive links/devices are forbidden")
             require(not member.mode & 0o7000, "Special archive permission bits forbidden")
         require("manifest.json" in names, "Archive lacks manifest.json")
-        require(tar.getmember("manifest.json").size < 100 * 1024 * 1024, "Oversized file manifest")
+        require(0 < tar.getmember("manifest.json").size <= MAX_MANIFEST_BYTES, "Oversized or empty file manifest (maximum 256 MiB)")
         manifest = json.load(tar.extractfile("manifest.json"))
         expected = manifest["files"]
         require(isinstance(expected, dict), "Invalid archive file manifest")
@@ -326,6 +330,30 @@ def restore(args, manifest):
                     os.replace(staged, dest)
                 write_json(proof_path, proof)
             report["artifacts"].append(entry)
+        snapshot_hash = next(a["sha256"] for a in manifest["artifacts"] if a["kind"] == "snapshot")
+        if args.evidence:
+            evidence_path = Path(args.evidence)
+            evidence = json.loads(evidence_path.read_text())
+            require(isinstance(evidence, dict) and evidence.get("source_snapshot_sha256") == snapshot_hash,
+                    "Reconciliation evidence does not match the selected snapshot hash")
+            try:
+                plan = reconcile(evidence)
+            except (KeyError, TypeError, ValueError):
+                raise RecoveryError("Malformed reconciliation evidence; all live actions remain held")
+            plan.update(status="fresh-evidence-plan-created", source_snapshot_sha256=snapshot_hash,
+                        evidence_sha256=sha(evidence_path), fresh_evidence_supplied=True)
+        else:
+            plan = {"schema": 1, "status": "not-reconciled-no-fresh-evidence",
+                    "source_snapshot_sha256": snapshot_hash, "fresh_evidence_supplied": False,
+                    "live_actions_allowed": False, "blockers": ["fresh-chain-process-and-transaction-evidence-required"],
+                    "jobs": [], "transactions": [], "note": "Restored historical journals are preserved, not replayed. Fresh live reconciliation has not been performed."}
+        require(plan.get("live_actions_allowed") is False, "Recovery reconciliation cannot enable live actions")
+        plan_path = work / "reconciliation-plan.json"
+        write_json(plan_path, plan)
+        report["reconciliation"] = {"status": plan["status"], "plan_file": plan_path.name,
+                                    "plan_sha256": sha(plan_path), "source_snapshot_sha256": snapshot_hash,
+                                    "fresh_evidence_supplied": plan["fresh_evidence_supplied"],
+                                    "blockers": plan["blockers"], "live_actions_allowed": False}
         report.update(ok=True, completed_utc=utc())
         write_json(work / "restore-verification.json", report)
     print(json.dumps(report, indent=2))
@@ -339,6 +367,7 @@ def main():
     parser.add_argument("--work", default=str(BASE / ".recovery"))
     parser.add_argument("--offline", action="store_true", help="Use already verified asset-cache files; does not prove remote access")
     parser.add_argument("--archive", help="For verify-archive only")
+    parser.add_argument("--evidence", help="Optional fresh reconciliation evidence bound to the selected snapshot SHA256; never enables launches")
     args = parser.parse_args()
     if args.action == "verify-archive":
         require(args.archive, "--archive required")

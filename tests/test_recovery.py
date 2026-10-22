@@ -11,12 +11,13 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE / "scripts"))
-from recover import RecoveryError, download_asset, preflight, read_manifest, sha, snapshot_file, verify_archive, verify_tree
+from recover import MAX_MANIFEST_BYTES, RecoveryError, download_asset, preflight, read_manifest, sha, snapshot_file, verify_archive, verify_tree
 from reconcile import reconcile
 merge_spec = importlib.util.spec_from_file_location("merge_local", BASE / "scripts/merge-local-delta.py")
 merge_module = importlib.util.module_from_spec(merge_spec)
@@ -56,6 +57,17 @@ class ArchiveSafety(unittest.TestCase):
         self.assertEqual(verify_tree(dest, manifest), 2)
         (dest / "nested/state").write_bytes(b"modified-state")
         with self.assertRaises(RecoveryError): verify_tree(dest, manifest)
+    def test_oversized_manifest_rejected_before_payload_read(self):
+        member = tarfile.TarInfo("manifest.json")
+        member.mode = 0o600
+        member.size = MAX_MANIFEST_BYTES + 1
+        tar = MagicMock()
+        tar.getmembers.return_value = [member]
+        tar.getmember.return_value = member
+        with patch("recover.tarfile.open") as opened:
+            opened.return_value.__enter__.return_value = tar
+            with self.assertRaises(RecoveryError): verify_archive("synthetic-header-only.tar")
+        tar.extractfile.assert_not_called()
 
     def test_reject_symlink(self):
         def link(t):
@@ -221,8 +233,25 @@ class EndToEnd(unittest.TestCase):
             self.assertEqual(report["artifacts"][0]["pawns"]["saved_sessions_decrypted"], 1)
             self.assertFalse(report["separate_recovery_key_required"])
             self.assertFalse(report["outer_backup_encryption"])
+            self.assertEqual(report["reconciliation"]["status"], "not-reconciled-no-fresh-evidence")
+            held_plan = json.loads((work / "reconciliation-plan.json").read_text())
+            self.assertFalse(held_plan["live_actions_allowed"])
+            self.assertEqual(held_plan["source_snapshot_sha256"], sha(asset))
             second = subprocess.run(cmd, check=True, capture_output=True)
             self.assertTrue(json.loads(second.stdout)["artifacts"][0]["resumed"])
+            supplied = evidence(); now = time.time()
+            supplied.update(source_snapshot_sha256=sha(asset), chain_observed_at=now, process_observed_at=now)
+            supplied["jobs"][0]["lease_end"] = now + 3600
+            evidence_file = root / "fresh-evidence.json"; evidence_file.write_text(json.dumps(supplied))
+            reviewed = subprocess.run(cmd + ["--evidence", str(evidence_file)], check=True, capture_output=True)
+            self.assertEqual(json.loads(reviewed.stdout)["reconciliation"]["status"], "fresh-evidence-plan-created")
+            review_plan = json.loads((work / "reconciliation-plan.json").read_text())
+            self.assertEqual(review_plan["jobs"][0]["decision"], "adopt-candidate-do-not-launch")
+            self.assertFalse(review_plan["live_actions_allowed"])
+            supplied["source_snapshot_sha256"] = "f" * 64; evidence_file.write_text(json.dumps(supplied))
+            wrong_snapshot = subprocess.run(cmd + ["--evidence", str(evidence_file)], capture_output=True)
+            self.assertNotEqual(wrong_snapshot.returncode, 0)
+            self.assertIn(b"does not match the selected snapshot hash", wrong_snapshot.stderr)
             target = root / "offline-root"
             subprocess.run([sys.executable, str(BASE / "scripts/stage-host.py"), "--snapshot", str(work / "restored/host"),
                             "--target-root", str(target), "--config", str(BASE / "config/recovery.example.json"),

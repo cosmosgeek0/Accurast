@@ -1,0 +1,41 @@
+{
+  "verified_utc": "2026-10-22T01:11:54.154711+00:00",
+  "ssm_command_id": "bef8d259-09f9-4f44-96eb-4258238c568b",
+  "ssm_status": "Success",
+  "unit": "cloudflared-salad.service",
+  "preserved_unit_matches_live": true,
+  "credential_path": "/etc/cloudflared-salad/tunnel.token",
+  "credential_preserved": true,
+  "credential_format": "base64 JSON Cloudflare tunnel token with a,s,t fields",
+  "requires_old_host_credential_decryption_key": false,
+  "effective_credential_property_counts": {
+    "LoadCredential": {
+      "query_succeeded": true,
+      "dbus_type": "a(ss)",
+      "entries": 0
+    },
+    "LoadCredentialEncrypted": {
+      "query_succeeded": true,
+      "dbus_type": "a(ss)",
+      "entries": 0
+    },
+    "SetCredential": {
+      "query_succeeded": true,
+      "dbus_type": "a(say)",
+      "entries": 0
+    },
+    "SetCredentialEncrypted": {
+      "query_succeeded": true,
+      "dbus_type": "a(say)",
+      "entries": 0
+    },
+    "ImportCredential": {
+      "query_succeeded": true,
+      "dbus_type": "as",
+      "entries": 0
+    }
+  },
+  "uses_preserved_plain_token_file": true,
+  "uses_systemd_creds_decrypt": false,
+  "limitation": "Verifies tunnel credential portability; does not perform tunnel reconnect, DNS change or provider authorization test."
+}

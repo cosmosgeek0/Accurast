@@ -14,6 +14,8 @@ It checks private GitHub access, downloads the pinned release assets, verifies S
 
 This command restores an isolated recovery copy. A replacement host requires the separate fenced staging and reconciliation steps in RECOVER.md. A successful isolated test does not prove live host provisioning, provider acceptance, phone availability or renewed leases. Original physical phones and IP addresses may no longer be available after lease expiry.
 
+The same entry command writes `reconciliation-plan.json`. Without fresh evidence it explicitly holds all actions as **not reconciled**. Add `--evidence /secure/fresh-evidence.json` to check a snapshot-bound transaction/phone review plan after restoration; this never enables launches or signing.
+
 The last reported rental-wallet balance was **0.447484638472 ACU**; this is a dated observation, not spendable-balance verification. Provider credits, rental funds and the separate funding wallet are distinct. No funds are spent by these tools.
 
 See `release-assets.json` for pinned remote artifacts, `dependencies.json` for recovery dependencies, and `verification/` for published test evidence when present. Access to the owner's private GitHub account must remain available after the Mac reset; recovery does not require the old Mac or AWS host.
